@@ -1,6 +1,7 @@
+// app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
-import NavBar from "@/components/Navbar";
+import { ReduxProvider } from "@/ReduxProviders";
 
 export const metadata: Metadata = {
   title: "Dar Bouraoui",
@@ -16,13 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
-        <NavBar />
-        {children}</body>
+    <html lang="en">
+      <body>
+        <ReduxProvider>
+          {children}
+        </ReduxProvider>
+      </body>
     </html>
   );
 }
