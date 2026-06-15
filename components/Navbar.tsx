@@ -9,6 +9,7 @@ import { logout, setUser } from "@/store/authSlice";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import Image from "next/image";
+import Modal from "./Modal";
 
 const navLinks = ["HOME", "About", "Services", "Blog", "Contact"];
 
@@ -44,6 +45,7 @@ export const Navbar = ({ colors }: NavbarProps) => {
 
   return (
     <>
+
       <nav className="fixed top-0 left-0 right-0 z-1000 bg-[rgba(251,248,241,0.95)] backdrop-blur-sm border-b border-black/5">
         <div className="flex items-center justify-between h-20 px-8 md:px-10 max-w-350 mx-auto">
           <motion.div
@@ -54,6 +56,7 @@ export const Navbar = ({ colors }: NavbarProps) => {
             <span className="text-xl tracking-[4px] font-medium" style={{ color: colors.primary }}>
               Dar Bouraoui
             </span>
+          <Modal isModalOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
             <span className="text-xs tracking-[2px] block" style={{ color: colors.textLight }}>
               CARTHAGE
             </span>
@@ -272,12 +275,6 @@ export const Navbar = ({ colors }: NavbarProps) => {
           )}
         </AnimatePresence>
       </nav>
-
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-        colors={colors}
-      />
     </>
   );
 };
