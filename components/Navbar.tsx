@@ -56,7 +56,6 @@ export const Navbar = ({ colors }: NavbarProps) => {
             <span className="text-xl tracking-[4px] font-medium" style={{ color: colors.primary }}>
               Dar Bouraoui
             </span>
-          <Modal isModalOpen={isLoginModalOpen} onClose={() => setIsLoginModalOpen(false)} />
             <span className="text-xs tracking-[2px] block" style={{ color: colors.textLight }}>
               CARTHAGE
             </span>
@@ -275,6 +274,11 @@ export const Navbar = ({ colors }: NavbarProps) => {
           )}
         </AnimatePresence>
       </nav>
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        colors={colors}
+      />    
     </>
   );
 };
