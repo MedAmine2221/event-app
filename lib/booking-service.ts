@@ -1,19 +1,17 @@
 // lib/booking-service.ts
 import { db } from './firebase';
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  orderBy, 
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  query,
+  where,
+  orderBy,
   Timestamp,
   writeBatch,
-  serverTimestamp
 } from 'firebase/firestore';
 import { TimeSlot, Booking } from '@/types/booking';
 
