@@ -62,6 +62,8 @@ interface PackReservationModalProps {
   packs: ReservationPack[];
   venues: VenueLite[];
   initialPackId?: PackId;
+  initialDate?: string;
+  initialPeriod?: "morning" | "evening" | null; 
 }
 
 type Step = "pack" | "venue" | "options" | "contact" | "success";
@@ -73,12 +75,15 @@ export const PackReservationModal = ({
   packs,
   venues,
   initialPackId,
+  initialDate,
+  initialPeriod, 
 }: PackReservationModalProps) => {
   const [step, setStep] = useState<Step>(initialPackId ? "venue" : "pack");
   const [selectedPackId, setSelectedPackId] = useState<PackId | null>(initialPackId || null);
 
-  const [date, setDate] = useState("");
-  const [period, setPeriod] = useState<"morning" | "evening" | null>(null);
+  const [date, setDate] = useState(initialDate || "");                                   // ⬅️ modifié
+  const [period, setPeriod] = useState<"morning" | "evening" | null>(initialPeriod || null); // ⬅️ modifié
+
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
 
   const [decorChoiceId, setDecorChoiceId] = useState<string | null>(null);
@@ -108,6 +113,14 @@ export const PackReservationModal = ({
       }
     }
   }, [date, period, venues, selectedVenueId]);
+  useEffect(() => {
+    if (isOpen) {
+      setStep(initialPackId ? "venue" : "pack");
+      setSelectedPackId(initialPackId || null);
+      setDate(initialDate || "");
+      setPeriod(initialPeriod || null);
+    }
+  }, [isOpen, initialPackId, initialDate, initialPeriod]);
 
   const selectedVenue = useMemo(
     () => venues.find((v) => v.id === selectedVenueId) || null,
@@ -121,8 +134,8 @@ export const PackReservationModal = ({
   const resetAndClose = () => {
     setStep(initialPackId ? "venue" : "pack");
     setSelectedPackId(initialPackId || null);
-    setDate("");
-    setPeriod(null);
+    setDate(initialDate || "");        
+    setPeriod(initialPeriod || null);  
     setSelectedVenueId(null);
     setDecorChoiceId(null);
     setJuiceChoice("");
@@ -131,7 +144,7 @@ export const PackReservationModal = ({
     onClose();
   };
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
     if (!selectedPack || !selectedVenue || !date || !period) return;
     if (!formData.clientName || !formData.clientEmail || !formData.clientPhone) {
       setSubmitError("Veuillez remplir tous les champs obligatoires");
@@ -147,9 +160,9 @@ export const PackReservationModal = ({
               const opt = selectedPack.decorOptions?.find((o) => o.id === decorChoiceId);
               return opt
                 ? { label: opt.label, color: opt.color, nappeColor: opt.nappeColor, chairCoverColor: opt.chairCoverColor }
-                : undefined;
+                : null; // ✅ null instead of undefined
             })()
-          : undefined;
+          : null; // ✅ null instead of undefined
 
       await createPackReservation({
         packId: selectedPack.packId,
@@ -162,7 +175,7 @@ export const PackReservationModal = ({
         clientEmail: formData.clientEmail,
         clientPhone: formData.clientPhone,
         message: formData.message,
-        decorChoice,
+        decorChoice: decorChoice ?? undefined, // keep type happy
         juiceChoice: selectedPack.packId === "pack3" ? juiceChoice : undefined,
       });
       setStep("success");

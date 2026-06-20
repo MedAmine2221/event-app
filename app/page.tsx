@@ -846,6 +846,8 @@ const filteredVenues = useMemo(() => {
         packs={reservationPacks}
         venues={venues} 
         initialPackId={selectedPackForModal}
+        initialDate={filterValue.date}   
+        initialPeriod={filterValue.period}
       />
 
       <ReviewsSection colors={colors} />

@@ -48,13 +48,7 @@ export const saveReservationPack = async (
 export const createPackReservation = async (
   data: Omit<PackReservation, "id" | "status" | "createdAt" | "updatedAt">
 ): Promise<PackReservation> => {
-  console.log("🔍 Vérification du créneau:", {
-    venueId: data.venueId,
-    date: data.date,
-    period: data.period,
-  });
-
-  // 1. Vérifier si le créneau existe et est disponible
+  
   const q = query(
     collection(db, SLOTS_COLLECTION),
     where("venueId", "==", data.venueId),
@@ -63,51 +57,47 @@ export const createPackReservation = async (
   );
   
   const snapshot = await getDocs(q);
-  console.log("📋 Créneaux trouvés:", snapshot.size);
+
+  let slotRef;
 
   if (snapshot.empty) {
-    console.error("❌ Aucun créneau trouvé pour:", {
+    // ✅ Auto-create the slot if it doesn't exist
+    const newSlotRef = doc(collection(db, SLOTS_COLLECTION));
+    await setDoc(newSlotRef, {
+      id: newSlotRef.id,
       venueId: data.venueId,
       date: data.date,
       period: data.period,
+      isAvailable: true,
+      createdAt: Timestamp.now(),
     });
-    throw new Error("Aucun créneau disponible pour cette salle à cette date et période");
+    slotRef = newSlotRef;
+  } else {
+    const slotDoc = snapshot.docs[0];
+    if (!slotDoc.data().isAvailable) {
+      throw new Error("Ce créneau n'est plus disponible pour cette salle");
+    }
+    slotRef = slotDoc.ref;
   }
 
-  // Vérifier que le créneau est disponible
-  const slotDoc = snapshot.docs[0];
-  const slotData = slotDoc.data();
-  console.log("📊 Données du créneau:", slotData);
+  // Create the reservation
 
-  if (!slotData.isAvailable) {
-    console.error("❌ Créneau déjà réservé par:", slotData.bookedBy);
-    throw new Error("Ce créneau n'est plus disponible pour cette salle");
-  }
+    const now = new Date().toISOString();
+  
+  // ✅ Remove undefined fields — Firestore doesn't accept them
+  const cleanData = Object.fromEntries(
+    Object.entries({
+      ...data,
+      status: "pending",
+      createdAt: now,
+      updatedAt: now,
+    }).filter(([, v]) => v !== undefined)
+  );
 
-  // 2. Créer la réservation
-  const now = new Date().toISOString();
-  const reservation: Omit<PackReservation, "id"> = {
-    ...data,
-    status: "pending",
-    createdAt: now,
-    updatedAt: now,
-  };
+  const docRef = await addDoc(collection(db, PACK_RESERVATIONS_COLLECTION), cleanData);
 
-  console.log("📝 Création de la réservation:", reservation);
-  const docRef = await addDoc(collection(db, PACK_RESERVATIONS_COLLECTION), reservation);
+  return { id: docRef.id, ...cleanData } as PackReservation;
 
-  // 3. Marquer le créneau comme indisponible
-  await updateDoc(slotDoc.ref, {
-    isAvailable: false,
-    bookedBy: docRef.id,
-    bookedAt: Timestamp.now(),
-    clientName: data.clientName,
-    clientEmail: data.clientEmail,
-    clientPhone: data.clientPhone,
-  });
-
-  console.log("✅ Réservation créée avec succès:", docRef.id);
-  return { id: docRef.id, ...reservation };
 };
 
 // Vérifier la disponibilité d'un créneau (sans créer de réservation)
