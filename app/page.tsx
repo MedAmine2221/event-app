@@ -136,11 +136,13 @@ export default function Home() {
 const [reservationPacks, setReservationPacks] = useState<ReservationPack[]>([]);
 const [isPackModalOpen, setIsPackModalOpen] = useState(false);
 const [selectedPackForModal, setSelectedPackForModal] = useState<PackId | undefined>(undefined);
-  // --- Filtre de disponibilité des salles ---
-  const [filterValue, setFilterValue] = useState<VenueFilterValue>({
+
+const [filterValue, setFilterValue] = useState<VenueFilterValue>({
     date: "",
     period: null,
     maxBudget: null,
+    minGuests: null,  
+    maxGuests: null,  
   });
   const [isFiltering, setIsFiltering] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
@@ -257,29 +259,49 @@ setReservationPacks(packs);
     }
   };
 
-  const handleResetFilter = () => {
-    setFilterValue({ date: "", period: null, maxBudget: null });
-    setIsFiltering(false);
-    setAvailableVenueIds(null);
-  };
+ const handleResetFilter = () => {
+  setFilterValue({ 
+    date: "", 
+    period: null, 
+    maxBudget: null,
+    minGuests: null,
+    maxGuests: null,
+  });
+  setIsFiltering(false);
+  setAvailableVenueIds(null);
+};
 
-  // Applique le filtre de disponibilité + budget sur la liste des salles
-  const filteredVenues = useMemo(() => {
-    if (!isFiltering) return venues;
+const filteredVenues = useMemo(() => {
+  if (!isFiltering) return venues;
 
-    return venues.filter((venue) => {
-      const isAvailable = availableVenueIds ? availableVenueIds.has(venue.id) : true;
-      if (!isAvailable) return false;
+  return venues.filter((venue) => {
+    // Filtre de disponibilité
+    const isAvailable = availableVenueIds ? availableVenueIds.has(venue.id) : true;
+    if (!isAvailable) return false;
 
-      if (filterValue.maxBudget !== null) {
-        const venuePrice = extractPriceNumber(venue.price);
-        // Si on n'arrive pas à lire un prix numérique, on ne l'exclut pas du résultat
-        if (venuePrice !== null && venuePrice > filterValue.maxBudget) return false;
+    // Filtre budget
+    if (filterValue.maxBudget !== null) {
+      const venuePrice = extractPriceNumber(venue.price);
+      if (venuePrice !== null && venuePrice > filterValue.maxBudget) return false;
+    }
+
+    // Filtre nombre d'invités
+    // Extraction du nombre d'invités depuis la capacité
+    const capacityMatch = venue.capacity.match(/(\d+)/);
+    if (capacityMatch) {
+      const venueCapacity = parseInt(capacityMatch[1]);
+      
+      if (filterValue.minGuests !== null && venueCapacity < filterValue.minGuests) {
+        return false;
       }
+      if (filterValue.maxGuests !== null && venueCapacity > filterValue.maxGuests) {
+        return false;
+      }
+    }
 
-      return true;
-    });
-  }, [venues, isFiltering, availableVenueIds, filterValue.maxBudget]);
+    return true;
+  });
+}, [venues, isFiltering, availableVenueIds, filterValue.maxBudget, filterValue.minGuests, filterValue.maxGuests]);
 
   // Fonction pour obtenir l'icône du type de package
   const getPackageIcon = (type: string) => {
@@ -325,13 +347,9 @@ setReservationPacks(packs);
       style={{ background: colors.background, color: colors.textDark }}
     >
       <Navbar colors={colors} />
-      
       {/* Hero Section - HOME */}
       <section id="home">
         <Hero colors={colors} />
-      </section>
-
-      {/* Filtre de disponibilité des salles */}
       <VenueAvailabilityFilter
         colors={colors}
         value={filterValue}
@@ -342,6 +360,7 @@ setReservationPacks(packs);
         resultsCount={filteredVenues.length}
         loading={filterLoading}
       />
+      </section>
 
       {/* Section Présentation de l'agence - ABOUT */}
       <section id="about">

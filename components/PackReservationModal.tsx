@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/set-state-in-effect */
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -17,7 +20,20 @@ import {
 } from "lucide-react";
 import { ReservationPack, PackId, PACK_LABELS } from "@/types/pack";
 import { createPackReservation } from "@/lib/pack-service";
-import { checkSlotAvailability } from "@/lib/booking-service";
+
+// Fonction pour vérifier la disponibilité d'une salle localement
+const isVenueAvailable = (
+  venue: VenueLite,
+  date: string,
+  period: "morning" | "evening"
+): boolean => {
+  if (!venue.unavailableDates) return true;
+  return !venue.unavailableDates.some((u: UnavailableDate) => {
+    if (u.date !== date) return false;
+    if (u.period === "full") return true;
+    return u.period === period;
+  });
+};
 
 interface VenueLite {
   id: string;
@@ -25,6 +41,12 @@ interface VenueLite {
   image: string;
   capacity: string;
   price: string;
+  unavailableDates?: UnavailableDate[];
+}
+
+interface UnavailableDate {
+  date: string;
+  period: "morning" | "evening" | "full";
 }
 
 interface PackReservationModalProps {
@@ -58,8 +80,6 @@ export const PackReservationModal = ({
   const [date, setDate] = useState("");
   const [period, setPeriod] = useState<"morning" | "evening" | null>(null);
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
-  const [checkingVenues, setCheckingVenues] = useState(false);
-  const [availableVenueIds, setAvailableVenueIds] = useState<Set<string> | null>(null);
 
   const [decorChoiceId, setDecorChoiceId] = useState<string | null>(null);
   const [juiceChoice, setJuiceChoice] = useState<string>("");
@@ -72,6 +92,23 @@ export const PackReservationModal = ({
     () => packs.find((p) => p.packId === selectedPackId) || null,
     [packs, selectedPackId]
   );
+
+  // Calculer les salles disponibles en temps réel
+  const availableVenues = useMemo(() => {
+    if (!date || !period) return [];
+    return venues.filter((venue) => isVenueAvailable(venue, date, period));
+  }, [venues, date, period]);
+
+  // Vérifier si la salle sélectionnée est toujours disponible
+  useEffect(() => {
+    if (selectedVenueId && date && period) {
+      const venue = venues.find((v) => v.id === selectedVenueId);
+      if (venue && !isVenueAvailable(venue, date, period)) {
+        setSelectedVenueId(null);
+      }
+    }
+  }, [date, period, venues, selectedVenueId]);
+
   const selectedVenue = useMemo(
     () => venues.find((v) => v.id === selectedVenueId) || null,
     [venues, selectedVenueId]
@@ -87,30 +124,11 @@ export const PackReservationModal = ({
     setDate("");
     setPeriod(null);
     setSelectedVenueId(null);
-    setAvailableVenueIds(null);
     setDecorChoiceId(null);
     setJuiceChoice("");
     setFormData({ clientName: "", clientEmail: "", clientPhone: "", message: "" });
     setSubmitError("");
     onClose();
-  };
-
-  const handleCheckAvailability = async () => {
-    if (!date || !period) return;
-    setCheckingVenues(true);
-    try {
-      const results = await Promise.all(
-        venues.map(async (v) => ({
-          id: v.id,
-          available: await checkSlotAvailability(v.id, date, period),
-        }))
-      );
-      setAvailableVenueIds(new Set(results.filter((r) => r.available).map((r) => r.id)));
-    } catch (error) {
-      console.error("Erreur de vérification de disponibilité:", error);
-    } finally {
-      setCheckingVenues(false);
-    }
   };
 
   const handleSubmit = async () => {
@@ -220,7 +238,10 @@ export const PackReservationModal = ({
                       type="date"
                       min={today}
                       value={date}
-                      onChange={(e) => { setDate(e.target.value); setAvailableVenueIds(null); setSelectedVenueId(null); }}
+                      onChange={(e) => { 
+                        setDate(e.target.value); 
+                        setSelectedVenueId(null);
+                      }}
                       className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none"
                       style={{ borderColor: `${colors.textLight}30` }}
                     />
@@ -229,8 +250,8 @@ export const PackReservationModal = ({
                     <label className="text-xs font-medium mb-1 block" style={{ color: colors.textDark }}>Créneau</label>
                     <div className="grid grid-cols-2 gap-2">
                       {[
-                        { value: "morning" as const, label: "Matinée", icon: Sun },
-                        { value: "evening" as const, label: "Soirée", icon: Moon },
+                        { value: "morning" as const, label: "Matinée (10h-14h)", icon: Sun },
+                        { value: "evening" as const, label: "Soirée (18h-2h)", icon: Moon },
                       ].map((opt) => {
                         const Icon = opt.icon;
                         const selected = period === opt.value;
@@ -238,7 +259,10 @@ export const PackReservationModal = ({
                           <button
                             key={opt.value}
                             type="button"
-                            onClick={() => { setPeriod(opt.value); setAvailableVenueIds(null); setSelectedVenueId(null); }}
+                            onClick={() => { 
+                              setPeriod(opt.value); 
+                              setSelectedVenueId(null);
+                            }}
                             className="flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-lg border-2 text-xs font-medium"
                             style={{
                               borderColor: selected ? colors.primary : `${colors.textLight}25`,
@@ -254,59 +278,103 @@ export const PackReservationModal = ({
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleCheckAvailability}
-                  disabled={!date || !period || checkingVenues}
-                  className="w-full py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-50"
-                  style={{ background: colors.primary }}
-                >
-                  {checkingVenues ? "Vérification..." : "Voir les salles disponibles"}
-                </button>
+                {/* Affichage des salles disponibles - MAINTENANT DIRECTEMENT VISIBLE */}
+                <div>
+                  {date && period ? (
+                    <>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm font-medium" style={{ color: colors.textDark }}>
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full" style={{ background: "#4CAF50" }} />
+                            {availableVenues.length} salle{availableVenues.length > 1 ? "s" : ""} disponible{availableVenues.length > 1 ? "s" : ""}
+                          </span>
+                        </p>
+                        {availableVenues.length > 0 && (
+                          <span className="text-xs" style={{ color: colors.textLight }}>
+                            Cliquez sur une salle pour la sélectionner
+                          </span>
+                        )}
+                      </div>
 
-                {availableVenueIds && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                    {venues.filter((v) => availableVenueIds.has(v.id)).map((venue) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <button
-                        key={venue.id}
-                        onClick={() => setSelectedVenueId(venue.id)}
-                        className="text-left rounded-xl overflow-hidden border-2 transition-all"
-                        style={{ borderColor: selectedVenueId === venue.id ? colors.primary : `${colors.textLight}20` }}
-                      >
-                        <div className="h-24 bg-gray-100">
-                          <img src={venue.image} alt={venue.name} className="w-full h-full object-cover" />
+                      {availableVenues.length === 0 ? (
+                        <div className="p-6 rounded-xl text-center" style={{ background: `${colors.primary}08` }}>
+                          <p className="text-sm" style={{ color: colors.textDark }}>
+                            😕 Aucune salle disponible
+                          </p>
+                          <p className="text-xs mt-1" style={{ color: colors.textLight }}>
+                            Essayez une autre date ou un autre créneau
+                          </p>
                         </div>
-                        <div className="p-3">
-                          <p className="font-medium text-sm" style={{ color: colors.textDark }}>{venue.name}</p>
-                          <p className="text-xs" style={{ color: colors.textLight }}>{venue.capacity}</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-1">
+                          {availableVenues.map((venue) => {
+                            const isSelected = selectedVenueId === venue.id;
+                            return (
+                              <button
+                                key={venue.id}
+                                onClick={() => setSelectedVenueId(venue.id)}
+                                className={`text-left rounded-xl overflow-hidden border-2 transition-all hover:shadow-md ${
+                                  isSelected ? "ring-2 ring-offset-1" : ""
+                                }`}
+                                style={{
+                                  borderColor: isSelected ? colors.primary : `${colors.textLight}20`,
+                                }}
+                              >
+                                <div className="h-24 bg-gray-100 relative">
+                                  <img 
+                                    src={venue.image} 
+                                    alt={venue.name} 
+                                    className="w-full h-full object-cover" 
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23f0f0f0' width='100' height='100'/%3E%3Ctext x='50' y='50' font-family='Arial' font-size='12' fill='%23999' text-anchor='middle' dy='.3em'%3E📍%3C/text%3E%3C/svg%3E";
+                                    }}
+                                  />
+                                  {isSelected && (
+                                    <div className="absolute top-2 right-2 bg-white rounded-full p-1 shadow">
+                                      <CheckCircle size={14} style={{ color: colors.primary }} />
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="p-3">
+                                  <p className="font-medium text-sm" style={{ color: colors.textDark }}>{venue.name}</p>
+                                  <p className="text-xs" style={{ color: colors.textLight }}>{venue.capacity}</p>
+                                  <p className="text-xs font-medium mt-0.5" style={{ color: colors.primary }}>{venue.price}</p>
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
-                      </button>
-                    ))}
-                    {venues.filter((v) => availableVenueIds.has(v.id)).length === 0 && (
-                      <p className="text-sm col-span-2 text-center py-4" style={{ color: colors.textLight }}>
-                        Aucune salle disponible pour cette date et ce créneau.
+                      )}
+                    </>
+                  ) : (
+                    <div className="p-6 rounded-xl text-center" style={{ background: `${colors.primary}05` }}>
+                      <p className="text-sm" style={{ color: colors.textLight }}>
+                        Sélectionnez une date et un créneau pour voir les salles disponibles
                       </p>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex gap-3 pt-2">
-                  <button
-                    onClick={() => setStep("pack")}
-                    className="flex-1 py-2.5 rounded-lg border text-sm disabled:opacity-40"
-                    style={{ borderColor: colors.primary, color: colors.primary }}
-                    disabled={!!initialPackId}
-                  >
-                    Retour
-                  </button>
+                  {!initialPackId && (
+                    <button
+                      onClick={() => setStep("pack")}
+                      className="flex-1 py-2.5 rounded-lg border text-sm"
+                      style={{ borderColor: colors.primary, color: colors.primary }}
+                    >
+                      Retour
+                    </button>
+                  )}
+                  {initialPackId && (
+                    <div className="flex-1" />
+                  )}
                   <button
                     onClick={() => setStep("options")}
-                    disabled={!selectedVenueId}
-                    className="flex-1 py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-50"
+                    disabled={!selectedVenueId || availableVenues.length === 0}
+                    className="flex-1 py-2.5 rounded-lg text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ background: colors.primary }}
                   >
-                    Continuer
+                    Continuer {selectedVenueId && `(${selectedVenue?.name})`}
                   </button>
                 </div>
               </div>
@@ -314,6 +382,13 @@ export const PackReservationModal = ({
 
             {step === "options" && selectedPack && (
               <div className="space-y-5">
+                <div className="p-3 rounded-lg text-sm" style={{ background: `${colors.primary}08`, color: colors.textDark }}>
+                  <p><strong>{selectedPack?.name}</strong> — {selectedVenue?.name}</p>
+                  <p style={{ color: colors.textLight }}>
+                    {date && new Date(date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} · {period === "morning" ? "Matinée" : "Soirée"}
+                  </p>
+                </div>
+
                 {selectedPack.packId === "pack1" && (
                   <div>
                     <p className="text-sm font-medium mb-3 flex items-center gap-1.5" style={{ color: colors.textDark }}>
@@ -324,8 +399,12 @@ export const PackReservationModal = ({
                         <button
                           key={opt.id}
                           onClick={() => setDecorChoiceId(opt.id)}
-                          className="text-left p-3 rounded-xl border-2"
-                          style={{ borderColor: decorChoiceId === opt.id ? colors.primary : `${colors.textLight}20` }}
+                          className={`text-left p-3 rounded-xl border-2 transition-all ${
+                            decorChoiceId === opt.id ? "ring-2 ring-offset-1" : ""
+                          }`}
+                          style={{
+                            borderColor: decorChoiceId === opt.id ? colors.primary : `${colors.textLight}20`,
+                          }}
                         >
                           <p className="text-sm font-medium mb-2" style={{ color: colors.textDark }}>{opt.label}</p>
                           <div className="flex gap-2">
@@ -336,7 +415,9 @@ export const PackReservationModal = ({
                         </button>
                       ))}
                       {(selectedPack.decorOptions || []).length === 0 && (
-                        <p className="text-sm" style={{ color: colors.textLight }}>Aucune option de décor configurée pour le moment.</p>
+                        <p className="text-sm col-span-2 text-center py-3" style={{ color: colors.textLight }}>
+                          Aucune option de décor disponible pour le moment.
+                        </p>
                       )}
                     </div>
                   </div>
@@ -364,7 +445,7 @@ export const PackReservationModal = ({
                         <button
                           key={opt.id}
                           onClick={() => setJuiceChoice(opt.name)}
-                          className="px-3 py-1.5 rounded-full text-xs font-medium border-2"
+                          className="px-3 py-1.5 rounded-full text-xs font-medium border-2 transition-all"
                           style={{
                             borderColor: juiceChoice === opt.name ? colors.primary : `${colors.textLight}25`,
                             background: juiceChoice === opt.name ? colors.primary : "transparent",
@@ -375,7 +456,7 @@ export const PackReservationModal = ({
                         </button>
                       ))}
                       {(selectedPack.juiceOptions || []).length === 0 && (
-                        <p className="text-sm" style={{ color: colors.textLight }}>Aucun jus configuré pour le moment.</p>
+                        <p className="text-sm" style={{ color: colors.textLight }}>Aucun jus disponible pour le moment.</p>
                       )}
                     </div>
                   </div>
@@ -411,7 +492,7 @@ export const PackReservationModal = ({
                   placeholder="Nom complet *"
                   value={formData.clientName}
                   onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2"
                   style={{ borderColor: `${colors.textLight}30` }}
                 />
                 <input
@@ -419,7 +500,7 @@ export const PackReservationModal = ({
                   placeholder="Email *"
                   value={formData.clientEmail}
                   onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2"
                   style={{ borderColor: `${colors.textLight}30` }}
                 />
                 <input
@@ -427,7 +508,7 @@ export const PackReservationModal = ({
                   placeholder="Téléphone *"
                   value={formData.clientPhone}
                   onChange={(e) => setFormData({ ...formData, clientPhone: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none"
+                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2"
                   style={{ borderColor: `${colors.textLight}30` }}
                 />
                 <textarea
@@ -435,7 +516,7 @@ export const PackReservationModal = ({
                   rows={3}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none resize-none"
+                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 resize-none"
                   style={{ borderColor: `${colors.textLight}30` }}
                 />
 
