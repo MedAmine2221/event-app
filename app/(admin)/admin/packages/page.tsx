@@ -1,6 +1,6 @@
 // app/admin/users/page.tsx
 "use client";;
-import { AdminWeddingPackages } from "@/components/admin/AdminWeddingPackages";
+import { AdminPacks } from "@/components/admin/AdminPack";
 const colors = {
 primary: "#C3937C",
 secondary: "#EAD9C9",
@@ -10,5 +10,5 @@ textLight: "#787878",
 };
 
 export default function AdminWeddingPackagesPages() {
-  return <AdminWeddingPackages colors={colors} />;
+  return <AdminPacks colors={colors} />;
 }

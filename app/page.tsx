@@ -14,7 +14,9 @@ import { extractPriceNumber } from "@/lib/price-utils";
 import { useState, useEffect, useMemo } from "react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-
+import { ReservationPack, PackId } from "@/types/pack";
+import { getReservationPacks } from "@/lib/pack-service";
+import { PackReservationModal } from "@/components/PackReservationModal";
 type UnavailablePeriod = "morning" | "evening" | "full";
 
 interface UnavailableDate {
@@ -131,7 +133,9 @@ export default function Home() {
   const [tablePackages, setTablePackages] = useState<TablePackage[]>([]);
   const [weddingPackages, setWeddingPackages] = useState<WeddingPackage[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-
+const [reservationPacks, setReservationPacks] = useState<ReservationPack[]>([]);
+const [isPackModalOpen, setIsPackModalOpen] = useState(false);
+const [selectedPackForModal, setSelectedPackForModal] = useState<PackId | undefined>(undefined);
   // --- Filtre de disponibilité des salles ---
   const [filterValue, setFilterValue] = useState<VenueFilterValue>({
     date: "",
@@ -211,7 +215,8 @@ export default function Home() {
           galleryData.push({ id: doc.id, ...doc.data() } as GalleryImage);
         });
         setGalleryImages(galleryData);
-
+const packs = await getReservationPacks();
+setReservationPacks(packs);
       } catch (error) {
         console.error("Erreur lors du chargement des données:", error);
       } finally {
@@ -787,224 +792,43 @@ export default function Home() {
             )}
           </div>
         </SectionWithAnimation>
-
-        {/* Wedding Packages */}
-        {weddingPackages.length > 0 && (
-          <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
-            <div className="text-center mb-12">
-              <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-                NOS FORMULES DE MARIAGE
-              </span>
-              <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-                Formules Complètes
-              </h2>
-              <div className="w-20 h-0.5 mx-auto mb-4" style={{ background: colors.primary }} />
-              <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
-                Des formules tout inclus pour un mariage parfait, de A à Z
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {weddingPackages.map((pkg, idx) => {
-                const typeColor = getPackageColor(pkg.type);
-                const Icon = getPackageIcon(pkg.type);
-                
-                return (
-                  <motion.div
-                    key={pkg.id}
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ y: -8 }}
-                    className={`bg-white rounded-2xl overflow-hidden shadow-lg border-2 transition-all ${
-                      pkg.isPopular ? `border-[${colors.primary}]` : "border-transparent"
-                    }`}
-                  >
-                    {/* Badge Populaire */}
-                    {pkg.isPopular && (
-                      <div
-                        className="text-center py-1 text-xs font-medium text-white flex items-center justify-center gap-1"
-                        style={{ backgroundColor: colors.primary }}
-                      >
-                        <Sparkles size={12} />
-                        Formule la plus populaire
-                      </div>
-                    )}
-
-                    {/* En-tête avec type */}
-                    <div className="p-6" style={{ backgroundColor: `${typeColor}10` }}>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className="w-12 h-12 rounded-full flex items-center justify-center text-white"
-                            style={{ backgroundColor: typeColor }}
-                          >
-                            {Icon}
-                          </div>
-                          <div>
-                            <h3 className="text-2xl font-bold" style={{ color: colors.textDark }}>
-                              {pkg.name}
-                            </h3>
-                            <p className="text-xs" style={{ color: colors.textLight }}>
-                              {pkg.type === "normal" && "Formule essentielle pour mariage classique"}
-                              {pkg.type === "pro" && "Formule complète avec prestations premium"}
-                              {pkg.type === "gold" && "Formule luxe avec wedding planner"}
-                              {pkg.type === "premium" && "Formule prestige avec services exclusifs"}
-                            </p>
-                          </div>
-                        </div>
-                        <span
-                          className="text-xs font-semibold px-3 py-1 rounded-full uppercase"
-                          style={{ backgroundColor: typeColor, color: "white" }}
-                        >
-                          {pkg.type}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="p-6">
-                      {/* Image */}
-                      {pkg.image && (
-                        <div className="h-48 rounded-lg overflow-hidden mb-4 bg-gray-100">
-                          <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
-                        </div>
-                      )}
-
-                      {/* Description */}
-                      <p className="text-sm mb-4" style={{ color: colors.textLight }}>
-                        {pkg.description}
-                      </p>
-
-                      {/* Prix */}
-                      <div className="flex flex-wrap items-center gap-4 mb-4 p-3 rounded-lg" style={{ backgroundColor: `${colors.primary}08` }}>
-                        <div>
-                          <p className="text-xs" style={{ color: colors.textLight }}>Prix total</p>
-                          <p className="font-bold text-lg" style={{ color: colors.primary }}>{pkg.price}</p>
-                        </div>
-                        {pkg.priceDetails?.perPerson && (
-                          <div>
-                            <p className="text-xs" style={{ color: colors.textLight }}>Par personne</p>
-                            <p className="font-semibold" style={{ color: colors.textDark }}>{pkg.priceDetails.perPerson}</p>
-                          </div>
-                        )}
-                        {pkg.priceDetails?.minGuests && pkg.priceDetails?.maxGuests && (
-                          <div>
-                            <p className="text-xs" style={{ color: colors.textLight }}>Nombre d&apos;invités</p>
-                            <p className="font-semibold" style={{ color: colors.textDark }}>
-                              {pkg.priceDetails.minGuests} - {pkg.priceDetails.maxGuests}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Services inclus - badges */}
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {pkg.features.venue?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            🏛️ Salle
-                          </span>
-                        )}
-                        {pkg.features.band?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            🎵 Musique
-                          </span>
-                        )}
-                        {pkg.features.pastries?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            🍰 Pâtisserie
-                          </span>
-                        )}
-                        {pkg.features.drinks?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            🥤 Boissons
-                          </span>
-                        )}
-                        {pkg.features.sweets?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            🥜 Douceurs
-                          </span>
-                        )}
-                        {pkg.features.weddingPlanner?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            👰 Wedding Planner
-                          </span>
-                        )}
-                        {pkg.features.photography?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            📸 Photo
-                          </span>
-                        )}
-                        {pkg.features.animation?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            🎭 Animation
-                          </span>
-                        )}
-                        {pkg.features.decoration?.included && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
-                            🌸 Décoration
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Éléments inclus (3 premiers) */}
-                      <div className="mb-4">
-                        <p className="text-xs font-medium mb-1" style={{ color: colors.textDark }}>
-                          Ce qui est inclus :
-                        </p>
-                        <ul className="space-y-0.5">
-                          {pkg.includedItems.slice(0, 4).map((item, i) => (
-                            <li key={i} className="flex items-start gap-1.5 text-xs" style={{ color: colors.textLight }}>
-                              <CheckCircle size={10} className="mt-0.5 shrink-0" style={{ color: colors.primary }} />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                          {pkg.includedItems.length > 4 && (
-                            <li className="text-xs" style={{ color: colors.primary }}>
-                              + {pkg.includedItems.length - 4} autres prestations
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        className="w-full py-3 rounded-full text-white text-sm font-medium transition-all"
-                        style={{ background: colors.primary }}
-                      >
-                        Choisir cette formule
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </SectionWithAnimation>
-        )}
       </section>
-
-      {/* Section Contact */}
-      <section id="contact">
-        <SectionWithAnimation className="py-20 px-10">
-          <div className="max-w-250 mx-auto text-center">
-            <h2 className="text-[clamp(32px,5vw,42px)] font-medium mb-4">
-              {"Prêt à créer l'événement parfait ?"}
-            </h2>
-            <p className="text-lg mb-8" style={{ color: colors.textLight }}>
-              {"Contactez-nous dès aujourd'hui pour une consultation personnalisée"}
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="px-10 py-3 rounded-full text-white text-lg font-medium shadow-lg"
-              style={{ background: colors.primary }}
-            >
-              Demander un devis gratuit
-            </motion.button>
+      {reservationPacks.length > 0 && (
+        <section className="py-20 px-10 max-w-350 mx-auto">
+          <div className="text-center mb-12">
+            <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
+              RÉSERVATION RAPIDE
+            </span>
+            <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">Nos Packs de Réservation</h2>
           </div>
-        </SectionWithAnimation>
-      </section>
-      
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {reservationPacks.map((pack) => (
+              <div key={pack.packId} className="bg-white rounded-2xl overflow-hidden shadow-lg p-6">
+                <h3 className="text-xl font-semibold mb-2">{pack.name}</h3>
+                <p className="text-sm mb-3" style={{ color: colors.textLight }}>{pack.description}</p>
+                <p className="text-sm font-semibold mb-4" style={{ color: colors.primary }}>{pack.price}</p>
+                <button
+                  onClick={() => { setSelectedPackForModal(pack.packId); setIsPackModalOpen(true); }}
+                  className="w-full py-2.5 rounded-full text-white text-sm font-medium"
+                  style={{ background: colors.primary }}
+                >
+                  Réserver ce pack
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <PackReservationModal
+        isOpen={isPackModalOpen}
+        onClose={() => { setIsPackModalOpen(false); setSelectedPackForModal(undefined); }}
+        colors={colors}
+        packs={reservationPacks}
+        venues={venues} 
+        initialPackId={selectedPackForModal}
+      />
+
       <ReviewsSection colors={colors} />
       <Footer colors={colors} />
     </div>

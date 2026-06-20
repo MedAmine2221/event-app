@@ -55,7 +55,6 @@ interface Venue {
   featured: boolean;
   unavailableDates: UnavailableDate[];
 }
-
 const EMPTY_FORM: Omit<Venue, "id"> = {
   name: "",
   description: "",
@@ -169,6 +168,7 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
         data.push({
           id: d.id,
           ...venueData,
+          // S'assurer que unavailableDates est toujours un tableau
           unavailableDates: venueData.unavailableDates || [],
         } as Venue);
       });
@@ -273,15 +273,15 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
       unavailableDates: prev.unavailableDates.filter((u) => u.date !== date),
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError("");    
-    if (!formData.name || !formData.description || !formData.capacity || !formData.price) {
+    setFormError("");   
+    
+    if (!formData.name || !formData.capacity || !formData.price) {
       setFormError("Tous les champs obligatoires doivent être remplis");
       return;
     }
-    if (formData.tables <= 0 || formData.chairs <= 0) {
+    if (formData.tables <= 0) {
       setFormError("Le nombre de tables et de chaises doit être supérieur à 0");
       return;
     }
@@ -291,7 +291,22 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
     }
 
     setSubmitLoading(true);
-    const dataToSave = { ...formData };
+    
+    // Créer une copie propre des données
+    const dataToSave = {
+      name: formData.name,
+      description: formData.description,
+      image: formData.image,
+      capacity: formData.capacity,
+      tables: formData.tables,
+      chairs: formData.chairs,
+      type: formData.type,
+      price: formData.price,
+      surface: formData.surface || "",
+      isIndoor: formData.isIndoor,
+      featured: formData.featured,
+      unavailableDates: formData.unavailableDates || [], // ← Important !
+    };
 
     try {
       if (editingVenue?.id) {
@@ -305,12 +320,12 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
       }
       closeModal();
     } catch (error: any) {
+      console.error("Erreur détaillée:", error);
       setFormError(error.message || "Erreur lors de la sauvegarde");
     } finally {
       setSubmitLoading(false);
     }
   };
-
   const handleDelete = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cet espace ?")) return;
     try {
@@ -324,20 +339,20 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
   const openEditModal = (venue: Venue) => {
     setEditingVenue(venue);
     setFormData({
-      name: venue.name,
-      description: venue.description,
-      image: venue.image,
-      capacity: venue.capacity,
-      tables: venue.tables,
-      chairs: venue.chairs,
-      type: venue.type,
-      price: venue.price,
+      name: venue.name || "",
+      description: venue.description || "",
+      image: venue.image || "",
+      capacity: venue.capacity || "",
+      tables: venue.tables || 0,
+      chairs: venue.chairs || 0,
+      type: venue.type || "salle_fete",
+      price: venue.price || "",
       surface: venue.surface || "",
-      isIndoor: venue.isIndoor,
-      featured: venue.featured,
-      unavailableDates: venue.unavailableDates || [],
+      isIndoor: venue.isIndoor !== undefined ? venue.isIndoor : true,
+      featured: venue.featured || false,
+      unavailableDates: venue.unavailableDates || [], // ← Important !
     });
-    setImagePreview(venue.image);
+    setImagePreview(venue.image || "");
     setFormError("");
     setDateMode("single");
     setNewUnavailableDate("");
@@ -346,7 +361,6 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
     setRangeError("");
     setIsModalOpen(true);
   };
-
   const openAddModal = () => {
     setEditingVenue(null);
     setFormData({ ...EMPTY_FORM});
