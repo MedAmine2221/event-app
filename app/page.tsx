@@ -8,10 +8,19 @@ import { Hero } from "@/components/Hero";
 import { SectionWithAnimation } from "@/components/SectionWithAnimation";
 import { motion } from "framer-motion";
 import { ReviewsSection } from "@/components/ReviewsSection";
+import { VenueAvailabilityFilter, VenueFilterValue } from "@/components/VenueAvailabilityFilter";
 import { colors } from "@/constants";
-import { useState, useEffect } from "react";
+import { extractPriceNumber } from "@/lib/price-utils";
+import { useState, useEffect, useMemo } from "react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+
+type UnavailablePeriod = "morning" | "evening" | "full";
+
+interface UnavailableDate {
+  date: string; // YYYY-MM-DD
+  period: UnavailablePeriod;
+}
 
 // Interfaces pour les données Firebase
 interface Venue {
@@ -27,6 +36,7 @@ interface Venue {
   surface?: string;
   isIndoor: boolean;
   featured: boolean;
+  unavailableDates?: UnavailableDate[];
 }
 
 interface Band {
@@ -122,6 +132,16 @@ export default function Home() {
   const [weddingPackages, setWeddingPackages] = useState<WeddingPackage[]>([]);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
 
+  // --- Filtre de disponibilité des salles ---
+  const [filterValue, setFilterValue] = useState<VenueFilterValue>({
+    date: "",
+    period: null,
+    maxBudget: null,
+  });
+  const [isFiltering, setIsFiltering] = useState(false);
+  const [filterLoading, setFilterLoading] = useState(false);
+  const [availableVenueIds, setAvailableVenueIds] = useState<Set<string> | null>(null);
+
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -202,6 +222,60 @@ export default function Home() {
     fetchAllData();
   }, []);
 
+  // Recherche des salles disponibles pour la date/créneau choisis.
+  // Une salle est indisponible si elle a une entrée "unavailableDates" correspondant
+  // à la date sélectionnée avec period = "full", ou period = créneau choisi.
+  const handleSearchAvailability = async () => {
+    if (!filterValue.date || !filterValue.period) return;
+
+    setFilterLoading(true);
+    try {
+      const available = new Set(
+        venues
+          .filter((v) => {
+            const blocked = (v.unavailableDates || []).some(
+              (u) =>
+                u.date === filterValue.date &&
+                (u.period === "full" || u.period === filterValue.period)
+            );
+            return !blocked;
+          })
+          .map((v) => v.id)
+      );
+
+      setAvailableVenueIds(available);
+      setIsFiltering(true);
+    } catch (error) {
+      console.error("Erreur lors de la vérification de disponibilité:", error);
+    } finally {
+      setFilterLoading(false);
+    }
+  };
+
+  const handleResetFilter = () => {
+    setFilterValue({ date: "", period: null, maxBudget: null });
+    setIsFiltering(false);
+    setAvailableVenueIds(null);
+  };
+
+  // Applique le filtre de disponibilité + budget sur la liste des salles
+  const filteredVenues = useMemo(() => {
+    if (!isFiltering) return venues;
+
+    return venues.filter((venue) => {
+      const isAvailable = availableVenueIds ? availableVenueIds.has(venue.id) : true;
+      if (!isAvailable) return false;
+
+      if (filterValue.maxBudget !== null) {
+        const venuePrice = extractPriceNumber(venue.price);
+        // Si on n'arrive pas à lire un prix numérique, on ne l'exclut pas du résultat
+        if (venuePrice !== null && venuePrice > filterValue.maxBudget) return false;
+      }
+
+      return true;
+    });
+  }, [venues, isFiltering, availableVenueIds, filterValue.maxBudget]);
+
   // Fonction pour obtenir l'icône du type de package
   const getPackageIcon = (type: string) => {
     switch(type) {
@@ -251,6 +325,18 @@ export default function Home() {
       <section id="home">
         <Hero colors={colors} />
       </section>
+
+      {/* Filtre de disponibilité des salles */}
+      <VenueAvailabilityFilter
+        colors={colors}
+        value={filterValue}
+        onChange={setFilterValue}
+        onSearch={handleSearchAvailability}
+        onReset={handleResetFilter}
+        isFiltering={isFiltering}
+        resultsCount={filteredVenues.length}
+        loading={filterLoading}
+      />
 
       {/* Section Présentation de l'agence - ABOUT */}
       <section id="about">
@@ -375,11 +461,13 @@ export default function Home() {
               Salles de fête disponibles
             </h2>
             <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
-              Des lieux d&apos;exception pour tous vos événements
+              {isFiltering
+                ? "Résultats filtrés selon votre date, créneau et budget"
+                : "Des lieux d'exception pour tous vos événements"}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {venues.map((venue, idx) => (
+            {filteredVenues.map((venue, idx) => (
               <motion.div
                 key={venue.id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -389,8 +477,17 @@ export default function Home() {
                 whileHover={{ y: -5 }}
                 className="bg-white rounded-2xl overflow-hidden shadow-lg"
               >
-                <div className="h-64 overflow-hidden">
+                <div className="h-64 overflow-hidden relative">
                   <img src={venue.image} alt={venue.name} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+                  {isFiltering && (
+                    <span
+                      className="absolute top-3 left-3 px-3 py-1 rounded-full text-[11px] font-medium text-white flex items-center gap-1"
+                      style={{ background: "#4CAF50" }}
+                    >
+                      <CheckCircle size={12} />
+                      Disponible
+                    </span>
+                  )}
                 </div>
                 <div className="p-6">
                   <h3 className="text-2xl font-medium mb-2">{venue.name}</h3>
@@ -409,6 +506,16 @@ export default function Home() {
               </motion.div>
             ))}
           </div>
+          {filteredVenues.length === 0 && isFiltering && (
+            <div className="text-center py-10">
+              <p className="text-sm mb-2" style={{ color: colors.textDark }}>
+                Aucune salle disponible pour ces critères.
+              </p>
+              <p className="text-xs" style={{ color: colors.textLight }}>
+                Essayez une autre date, un autre créneau ou augmentez votre budget.
+              </p>
+            </div>
+          )}
           {venues.length === 0 && (
             <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucune salle disponible pour le moment.</p>
           )}
