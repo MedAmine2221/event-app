@@ -303,3 +303,12 @@ export const menuPacks = {
     ]
   }
 };
+
+export const navLinks = [
+  { name: "HOME", link: "#home" },
+  { name: "About", link: "#about" },
+  { name: "Services", link: "#services" },
+  { name: "Gallery", link: "#gallery" },
+  { name: "Contact", link: "#contact" },
+  { name: "Admin", link: "/admin" }
+];

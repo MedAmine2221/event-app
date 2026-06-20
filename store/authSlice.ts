@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import {
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    updateProfile,
-    User,
-    signInWithPopup
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  signInWithPopup,
+  User,
 } from 'firebase/auth';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { auth, db, googleProvider } from '@/lib/firebase';
@@ -31,16 +32,16 @@ const initialState: AuthState = {
 
 export const signUp = createAsyncThunk(
   'auth/signUp',
-  async ({ email, password, name }: { email: string; password: string; name: string }) => {
+  async ({ email, password, name, role = "client" }: { email: string; password: string; name: string; role?: string }) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(userCredential.user, { displayName: name });
     
     await setDoc(doc(db, 'users', userCredential.user.uid), {
-      uid: userCredential.user.uid,
       email: userCredential.user.email,
       displayName: name,
       photoURL: null,
       createdAt: new Date().toISOString(),
+      role: role
     });
     
     return {
@@ -48,9 +49,29 @@ export const signUp = createAsyncThunk(
       email: userCredential.user.email,
       displayName: name,
       photoURL: null,
+      role: role
     };
   }
 );
+
+export const setUser = createAsyncThunk(
+  'auth/setUser',
+  async (user: User | null) => {
+    if (!user) return null;
+    
+    const userDoc = await getDoc(doc(db, 'users', user.uid));
+    const userData = userDoc.data();
+    
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || userData?.displayName,
+      photoURL: user.photoURL || userData?.photoURL,
+      role: userData?.role || "client"
+    };
+  }
+);
+
 
 export const signIn = createAsyncThunk(
   'auth/signIn',
@@ -98,22 +119,6 @@ export const logout = createAsyncThunk('auth/logout', async () => {
   return null;
 });
 
-export const setUser = createAsyncThunk(
-  'auth/setUser',
-  async (user: User | null) => {
-    if (!user) return null;
-    
-    const userDoc = await getDoc(doc(db, 'users', user.uid));
-    const userData = userDoc.data();
-    
-    return {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName || userData?.displayName,
-      photoURL: user.photoURL || userData?.photoURL,
-    };
-  }
-);
 
 const authSlice = createSlice({
   name: 'auth',
@@ -137,7 +142,6 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Sign up failed';
       })
-      // Sign In
       .addCase(signIn.pending, (state) => {
         state.loading = true;
         state.error = null;

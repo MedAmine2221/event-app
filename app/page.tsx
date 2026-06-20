@@ -1,526 +1,904 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { CheckCircle, Music, Utensils, Star, Crown, Gem } from "lucide-react";
+import { CheckCircle, Music, Star, Crown, Gem, Loader2, Sparkles, Heart, ImageIcon } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
 import { SectionWithAnimation } from "@/components/SectionWithAnimation";
 import { motion } from "framer-motion";
 import { ReviewsSection } from "@/components/ReviewsSection";
-import { bands, colors, menuPacks, pastries, tableDrinks, tablePackages, tableSweets, teamMembers, venues } from "@/constants";
+import { colors } from "@/constants";
+import { useState, useEffect } from "react";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
+// Interfaces pour les données Firebase
+interface Venue {
+  id: string;
+  name: string;
+  description: string;
+  image: string;
+  capacity: string;
+  tables: number;
+  chairs: number;
+  type: string;
+  price: string;
+  surface?: string;
+  isIndoor: boolean;
+  featured: boolean;
+}
+
+interface Band {
+  id: string;
+  name: string;
+  genre: string;
+  price: string;
+  image: string;
+  description: string;
+}
+
+interface Pastry {
+  id: string;
+  name: string;
+  specialty: string;
+  price: string;
+  image: string;
+  description: string;
+}
+
+interface Drink {
+  id: string;
+  name: string;
+  category: string;
+  price: string;
+  image: string;
+  description: string;
+}
+
+interface Sweet {
+  id: string;
+  name: string;
+  type: string;
+  price: string;
+  image: string;
+  description: string;
+}
+
+interface TablePackage {
+  id: string;
+  name: string;
+  price: string;
+  items: string[];
+  featured?: boolean;
+}
+
+interface WeddingPackage {
+  id: string;
+  name: string;
+  type: "normal" | "pro" | "gold" | "premium";
+  description: string;
+  price: string;
+  priceDetails?: {
+    perPerson?: string;
+    total?: string;
+    minGuests?: number;
+    maxGuests?: number;
+  };
+  features: {
+    venue: { included: boolean; description: string };
+    band: { included: boolean; description: string };
+    pastries: { included: boolean; description: string };
+    drinks: { included: boolean; description: string };
+    sweets: { included: boolean; description: string };
+    decoration?: { included: boolean; description: string };
+    weddingPlanner?: { included: boolean; description: string };
+    animation?: { included: boolean; description: string };
+    photography?: { included: boolean; description: string };
+  };
+  includedItems: string[];
+  isPopular?: boolean;
+  image?: string;
+}
+
+interface GalleryImage {
+  id: string;
+  title: string;
+  image: string;
+  category: string;
+  featured: boolean;
+  order: number;
+  createdAt: string;
+}
 
 export default function Home() {
+  const [loading, setLoading] = useState(true);
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [bands, setBands] = useState<Band[]>([]);
+  const [pastries, setPastries] = useState<Pastry[]>([]);
+  const [drinks, setDrinks] = useState<Drink[]>([]);
+  const [sweets, setSweets] = useState<Sweet[]>([]);
+  const [tablePackages, setTablePackages] = useState<TablePackage[]>([]);
+  const [weddingPackages, setWeddingPackages] = useState<WeddingPackage[]>([]);
+  const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        // Fetch venues
+        const venuesSnapshot = await getDocs(collection(db, "venues"));
+        const venuesData: Venue[] = [];
+        venuesSnapshot.forEach((doc) => {
+          venuesData.push({ id: doc.id, ...doc.data() } as Venue);
+        });
+        setVenues(venuesData);
+
+        // Fetch bands
+        const bandsSnapshot = await getDocs(collection(db, "bands"));
+        const bandsData: Band[] = [];
+        bandsSnapshot.forEach((doc) => {
+          bandsData.push({ id: doc.id, ...doc.data() } as Band);
+        });
+        setBands(bandsData);
+
+        // Fetch pastries
+        const pastriesSnapshot = await getDocs(collection(db, "pastries"));
+        const pastriesData: Pastry[] = [];
+        pastriesSnapshot.forEach((doc) => {
+          pastriesData.push({ id: doc.id, ...doc.data() } as Pastry);
+        });
+        setPastries(pastriesData);
+
+        // Fetch drinks
+        const drinksSnapshot = await getDocs(collection(db, "drinks"));
+        const drinksData: Drink[] = [];
+        drinksSnapshot.forEach((doc) => {
+          drinksData.push({ id: doc.id, ...doc.data() } as Drink);
+        });
+        setDrinks(drinksData);
+
+        // Fetch sweets
+        const sweetsSnapshot = await getDocs(collection(db, "sweets"));
+        const sweetsData: Sweet[] = [];
+        sweetsSnapshot.forEach((doc) => {
+          sweetsData.push({ id: doc.id, ...doc.data() } as Sweet);
+        });
+        setSweets(sweetsData);
+
+        // Fetch table packages (formules)
+        const formulesSnapshot = await getDocs(collection(db, "formules"));
+        const formulesData: TablePackage[] = [];
+        formulesSnapshot.forEach((doc) => {
+          formulesData.push({ id: doc.id, ...doc.data() } as TablePackage);
+        });
+        setTablePackages(formulesData);
+
+        // Fetch wedding packages
+        const weddingPackagesSnapshot = await getDocs(collection(db, "weddingPackages"));
+        const weddingPackagesData: WeddingPackage[] = [];
+        weddingPackagesSnapshot.forEach((doc) => {
+          weddingPackagesData.push({ id: doc.id, ...doc.data() } as WeddingPackage);
+        });
+        setWeddingPackages(weddingPackagesData);
+
+        // Fetch gallery images
+        const galleryRef = collection(db, "gallery");
+        const q = query(galleryRef, orderBy("order", "asc"));
+        const gallerySnapshot = await getDocs(q);
+        const galleryData: GalleryImage[] = [];
+        gallerySnapshot.forEach((doc) => {
+          galleryData.push({ id: doc.id, ...doc.data() } as GalleryImage);
+        });
+        setGalleryImages(galleryData);
+
+      } catch (error) {
+        console.error("Erreur lors du chargement des données:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  // Fonction pour obtenir l'icône du type de package
+  const getPackageIcon = (type: string) => {
+    switch(type) {
+      case "normal": return <Heart size={24} />;
+      case "pro": return <Star size={24} />;
+      case "gold": return <Crown size={24} />;
+      case "premium": return <Gem size={24} />;
+      default: return <Heart size={24} />;
+    }
+  };
+
+  // Fonction pour obtenir la couleur du type de package
+  const getPackageColor = (type: string) => {
+    switch(type) {
+      case "normal": return "#4CAF50";
+      case "pro": return "#2196F3";
+      case "gold": return "#FFD700";
+      case "premium": return "#9C27B0";
+      default: return colors.primary;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center"
+        style={{ background: colors.background }}
+      >
+        <Loader2 size={48} className="animate-spin" style={{ color: colors.primary }} />
+        <p className="mt-4 text-sm" style={{ color: colors.textLight }}>Chargement des données...</p>
+      </div>
+    );
+  }
+
+  // Séparer les images mises en avant et les autres
+  const featuredImages = galleryImages.filter(img => img.featured);
+  const regularImages = galleryImages.filter(img => !img.featured);
+
   return (
     <div
       className="font-['Playfair_Display','Times_New_Roman',Georgia,serif] min-h-screen"
       style={{ background: colors.background, color: colors.textDark }}
     >
       <Navbar colors={colors} />
-      <Hero colors={colors} />
+      
+      {/* Hero Section - HOME */}
+      <section id="home">
+        <Hero colors={colors} />
+      </section>
 
-      {/* Section Présentation de l'agence */}
-      <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
-        <div className="text-center mb-12">
-          <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-            QUI SOMMES-NOUS
-          </span>
-          <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-            Dar Bouraoui Events
-          </h2>
-          <div className="w-20 h-0.5 mx-auto mb-8" style={{ background: colors.primary }} />
-          <p className="max-w-3xl mx-auto text-[15px] leading-relaxed" style={{ color: colors.textLight }}>
-            Dar Bouraoui Events est une agence événementielle de premier plan en Tunisie, 
-            spécialisée dans l&#39;organisation de mariages, fiançailles, séminaires et soirées privées. 
-            Avec plus de 10 ans d&lsquo;expérience, nous transformons vos rêves en réalité, 
-            en créant des moments uniques et inoubliables.
-          </p>
-        </div>
-      </SectionWithAnimation>
-
-      {/* Section Photos de l'équipe */}
-      <SectionWithAnimation className="py-20 px-10">
-        <div className="max-w-350 mx-auto">
+      {/* Section Présentation de l'agence - ABOUT */}
+      <section id="about">
+        <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
           <div className="text-center mb-12">
             <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-              NOTRE ÉQUIPE
+              QUI SOMMES-NOUS
             </span>
             <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-              Des professionnels passionnés
+              Carthage Events
             </h2>
-            <p className="text-sm" style={{ color: colors.textLight }}>
-              Une équipe dévouée à votre service pour faire de votre événement un succès
+            <div className="w-20 h-0.5 mx-auto mb-8" style={{ background: colors.primary }} />
+            <p className="max-w-3xl mx-auto text-[15px] leading-relaxed" style={{ color: colors.textLight }}>
+              Carthage Events est une agence événementielle de premier plan en Tunisie, 
+              spécialisée dans l&apos;organisation de mariages, fiançailles, séminaires et soirées privées. 
+              Avec plus de 10 ans d&apos;expérience, nous transformons vos rêves en réalité, 
+              en créant des moments uniques et inoubliables.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {teamMembers.map((member, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -10 }}
-                className="text-center group cursor-pointer"
-              >
-                <div className="rounded-full overflow-hidden w-48 h-48 mx-auto mb-4 ring-4 ring-white shadow-lg">
-                  <img 
-                    src={member.image} 
-                    alt={member.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                </div>
-                <h3 className="text-xl font-medium mb-1">{member.name}</h3>
-                <p className="text-sm" style={{ color: colors.primary }}>{member.role}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </SectionWithAnimation>
+        </SectionWithAnimation>
+      </section>
 
-      {/* Section Salles de fête */}
-      <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
-        <div className="text-center mb-12">
-          <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-            NOS ESPACES
-          </span>
-          <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-            Salles de fête disponibles
-          </h2>
-          <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
-            Des lieux d&apos;exception pour tous vos événements
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {venues.map((venue, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              transition={{ delay: idx * 0.1 }}
-              viewport={{ once: true }}
-              whileHover={{ y: -5 }}
-              className="bg-white rounded-2xl overflow-hidden shadow-lg"
-            >
-              <div className="h-64 overflow-hidden">
-                <img src={venue.image} alt={venue.name} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
-              </div>
-              <div className="p-6">
-                <h3 className="text-2xl font-medium mb-2">{venue.name}</h3>
-                <p className="text-sm mb-3" style={{ color: colors.primary }}>Capacité: {venue.capacity}</p>
-                <p className="text-sm mb-4" style={{ color: colors.textLight }}>{venue.price}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {venue.features.map((feature, i) => (
-                    <span key={i} className="text-xs px-3 py-1 rounded-full" style={{ background: `${colors.primary}10`, color: colors.textDark }}>
-                      {feature}
-                    </span>
+      {/* Section Galerie - GALLERY */}
+      <section id="gallery">
+        {galleryImages.length > 0 && (
+          <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
+            <div className="text-center mb-12">
+              <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
+                NOS RÉALISATIONS
+              </span>
+              <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
+                Galerie d&apos;Événements
+              </h2>
+              <div className="w-20 h-0.5 mx-auto mb-4" style={{ background: colors.primary }} />
+              <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
+                Découvrez nos plus belles créations en images
+              </p>
+            </div>
+
+            {/* Images à la une (en grand) */}
+            {featuredImages.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-medium mb-4 flex items-center gap-2" style={{ color: colors.textDark }}>
+                  <Sparkles size={18} style={{ color: colors.primary }} />
+                  À la une
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {featuredImages.map((img, idx) => (
+                    <motion.div
+                      key={img.id}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.1 }}
+                      viewport={{ once: true }}
+                      className="relative rounded-2xl overflow-hidden group"
+                    >
+                      <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+                        <img
+                          src={img.image}
+                          alt={img.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+                        <p className="text-white font-medium text-sm">{img.title}</p>
+                        <p className="text-white/70 text-xs">{img.category}</p>
+                      </div>
+                    </motion.div>
                   ))}
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  className="w-full py-2 rounded-full text-white text-sm"
-                  style={{ background: colors.primary }}
-                >
-                  Réserver
-                </motion.button>
               </div>
-            </motion.div>
-          ))}
-        </div>
-      </SectionWithAnimation>
+            )}
 
-      {/* Section Bands */}
-      <SectionWithAnimation className="py-20 px-10">
-        <div className="max-w-350 mx-auto">
+            {/* Grille d'images */}
+            {regularImages.length > 0 && (
+              <div>
+                {featuredImages.length > 0 && (
+                  <h3 className="text-lg font-medium mb-4" style={{ color: colors.textDark }}>
+                    Nos événements
+                  </h3>
+                )}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {regularImages.map((img, idx) => (
+                    <motion.div
+                      key={img.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      viewport={{ once: true }}
+                      className="relative rounded-xl overflow-hidden group cursor-pointer"
+                    >
+                      <div className="aspect-square overflow-hidden bg-gray-100">
+                        <img
+                          src={img.image}
+                          alt={img.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300 flex items-end">
+                        <div className="p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 w-full">
+                          <p className="text-white text-xs font-medium truncate">{img.title}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </SectionWithAnimation>
+        )}
+      </section>
+
+      {/* Section Services - SERVICES */}
+      <section id="services">
+        {/* Salles de fête */}
+        <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
           <div className="text-center mb-12">
             <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-              ANIMATION MUSICALE
+              NOS ESPACES
             </span>
             <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-              Bands & Artistes
+              Salles de fête disponibles
             </h2>
-            <Music size={32} className="mx-auto mb-4" style={{ color: colors.primary }} />
             <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
-              Une sélection des meilleurs artistes pour animer votre soirée
+              Des lieux d&apos;exception pour tous vos événements
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {bands.map((band, idx) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {venues.map((venue, idx) => (
               <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                key={venue.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.1 }}
                 viewport={{ once: true }}
-                whileHover={{ scale: 1.05 }}
-                className="bg-white rounded-xl overflow-hidden shadow-md"
+                whileHover={{ y: -5 }}
+                className="bg-white rounded-2xl overflow-hidden shadow-lg"
               >
-                <div>
-                  <img src={band.image} alt={band.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-medium mb-1">{band.name}</h3>
-                  <p className="text-xs mb-2" style={{ color: colors.textLight }}>{band.genre}</p>
-                  <p className="text-sm font-semibold" style={{ color: colors.primary }}>{band.price}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </SectionWithAnimation>
-      {/* Section Pâtisserie Traditionnelle */}
-      <SectionWithAnimation className="py-20 px-10">
-        <div className="max-w-350 mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-              DOUCEURS TUNISIENNES
-            </span>
-            <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-              Nos Pâtisseries & Douceurs
-            </h2>
-            <div className="w-20 h-0.5 mx-auto mb-6" style={{ background: colors.primary }} />
-            <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
-              Un voyage gustatif à travers les saveurs authentiques de la pâtisserie tunisienne
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {pastries.map((pastry, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                viewport={{ once: true }}
-                whileHover={{ y: -8 }}
-                className="bg-white rounded-2xl overflow-hidden shadow-lg group"
-              >
-                <div className="relative">
-                  <img 
-                    src={pastry.image} 
-                    alt={pastry.name}
-                    className="w-60 h-60 group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
-                      {pastry.specialty}
-                    </span>
-                  </div>
+                <div className="h-64 overflow-hidden">
+                  <img src={venue.image} alt={venue.name} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
                 </div>
                 <div className="p-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-semibold">{pastry.name}</h3>
-                    <p className="text-sm font-bold" style={{ color: colors.primary }}>{pastry.price}</p>
-                  </div>
-                  <p className="text-sm mb-4" style={{ color: colors.textLight }}>
-                    {pastry.description}
-                  </p>
+                  <h3 className="text-2xl font-medium mb-2">{venue.name}</h3>
+                  <p className="text-sm mb-1" style={{ color: colors.primary }}>Capacité: {venue.capacity}</p>
+                  <p className="text-sm mb-1" style={{ color: colors.textLight }}>Tables: {venue.tables} | Chaises: {venue.chairs}</p>
+                  {venue.surface && <p className="text-sm mb-2" style={{ color: colors.textLight }}>Surface: {venue.surface}</p>}
+                  <p className="text-sm mb-4" style={{ color: colors.primary }}>{venue.price}</p>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
-                    className="w-full py-2 rounded-full border-2 text-sm font-medium transition-all"
-                    style={{ borderColor: colors.primary, color: colors.primary }}
+                    className="w-full py-2 rounded-full text-white text-sm"
+                    style={{ background: colors.primary }}
                   >
-                    Commander
+                    Réserver
                   </motion.button>
                 </div>
               </motion.div>
             ))}
           </div>
-        </div>
-      </SectionWithAnimation>
-      {/* Section Boissons & Fruits secs pour tables */}
-      <SectionWithAnimation className="py-20 px-10">
-        <div className="max-w-350 mx-auto">
-          <div className="text-center mb-12">
-            <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-              SUR VOTRE TABLE
-            </span>
-            <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-              Boissons & Fruits secs
-            </h2>
-            <div className="w-20 h-0.5 mx-auto mb-6" style={{ background: colors.primary }} />
-            <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
-              Pour le confort de vos invités, nous mettons à disposition sur chaque table
-            </p>
-          </div>
+          {venues.length === 0 && (
+            <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucune salle disponible pour le moment.</p>
+          )}
+        </SectionWithAnimation>
 
-          {/* Boissons */}
-          <div className="mb-16">
-            <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
-              Boissons
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tableDrinks.map((drink, idx) => (
+        {/* Bands */}
+        <SectionWithAnimation className="py-20 px-10">
+          <div className="max-w-350 mx-auto">
+            <div className="text-center mb-12">
+              <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
+                ANIMATION MUSICALE
+              </span>
+              <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
+                Bands & Artistes
+              </h2>
+              <Music size={32} className="mx-auto mb-4" style={{ color: colors.primary }} />
+              <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
+                Une sélection des meilleurs artistes pour animer votre soirée
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {bands.map((band, idx) => (
                 <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
+                  key={band.id}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                   viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white rounded-xl overflow-hidden shadow-md group"
+                  whileHover={{ scale: 1.05 }}
+                  className="bg-white rounded-xl overflow-hidden shadow-md"
                 >
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={drink.image} 
-                      alt={drink.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute top-4 right-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
-                        {drink.type}
-                      </span>
-                    </div>
+                  <div className="h-48 overflow-hidden">
+                    <img src={band.image} alt={band.name} className="w-full h-full object-cover" />
                   </div>
                   <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-lg">{drink.name}</h4>
-                      <span className="text-sm font-bold" style={{ color: colors.primary }}>{drink.price}</span>
-                    </div>
-                    <p className="text-xs" style={{ color: colors.textLight }}>{drink.description}</p>
+                    <h3 className="font-medium mb-1">{band.name}</h3>
+                    <p className="text-xs mb-2" style={{ color: colors.textLight }}>{band.genre}</p>
+                    <p className="text-sm font-semibold" style={{ color: colors.primary }}>{band.price}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
+            {bands.length === 0 && (
+              <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucun groupe disponible pour le moment.</p>
+            )}
           </div>
+        </SectionWithAnimation>
 
-          <div className="mb-16">
-            <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
-              Fruits secs & Douceurs
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tableSweets.map((sweet, idx) => (
+        {/* Pâtisserie Traditionnelle */}
+        <SectionWithAnimation className="py-20 px-10">
+          <div className="max-w-350 mx-auto">
+            <div className="text-center mb-12">
+              <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
+                DOUCEURS TUNISIENNES
+              </span>
+              <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
+                Nos Pâtisseries & Douceurs
+              </h2>
+              <div className="w-20 h-0.5 mx-auto mb-6" style={{ background: colors.primary }} />
+              <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
+                Un voyage gustatif à travers les saveurs authentiques de la pâtisserie tunisienne
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+              {pastries.map((pastry, idx) => (
                 <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, y: 20 }}
+                  key={pastry.id}
+                  initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                   viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
-                  className="bg-white rounded-xl overflow-hidden shadow-md group"
+                  whileHover={{ y: -8 }}
+                  className="bg-white rounded-2xl overflow-hidden shadow-lg group"
                 >
-                  <div className="relative h-48 overflow-hidden">
+                  <div className="relative h-60 overflow-hidden">
                     <img 
-                      src={sweet.image} 
-                      alt={sweet.name}
+                      src={pastry.image} 
+                      alt={pastry.name}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                     <div className="absolute top-4 right-4">
                       <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
-                        {sweet.type}
+                        {pastry.specialty}
                       </span>
                     </div>
                   </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-lg">{sweet.name}</h4>
-                      <span className="text-sm font-bold" style={{ color: colors.primary }}>{sweet.price}</span>
-                    </div>
-                    <p className="text-xs" style={{ color: colors.textLight }}>{sweet.description}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Formules pour tables */}
-          <div className="mt-12">
-            <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
-              Formules spéciales tables
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {tablePackages.map((pkg, idx) => (
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: idx * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -5 }}
-                  className={`rounded-2xl overflow-hidden shadow-lg ${
-                    idx === 1 ? 'border-2' : ''
-                  }`}
-                  style={{ 
-                    background: 'white',
-                    borderColor: idx === 1 ? colors.primary : 'transparent'
-                  }}
-                >
-                  {idx === 1 && (
-                    <div className="absolute top-0 right-0">
-                      <div className="px-4 py-1 text-white text-xs font-semibold rounded-bl-lg" style={{ background: colors.primary }}>
-                        POPULAIRE
-                      </div>
-                    </div>
-                  )}
                   <div className="p-6">
-                    <div className="text-center mb-4">
-                      <h4 className="text-xl font-bold mb-2">{pkg.name}</h4>
-                      <p className="text-lg font-semibold" style={{ color: colors.primary }}>{pkg.price}</p>
+                    <div className="flex justify-between items-start mb-3">
+                      <h3 className="text-xl font-semibold">{pastry.name}</h3>
+                      <p className="text-sm font-bold" style={{ color: colors.primary }}>{pastry.price}</p>
                     </div>
-                    <ul className="space-y-2 mb-6">
-                      {pkg.items.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <CheckCircle size={14} className="mt-0.5 shrink-0" style={{ color: colors.primary }} />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    <p className="text-sm mb-4" style={{ color: colors.textLight }}>
+                      {pastry.description}
+                    </p>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
-                      className="w-full py-2 rounded-full text-white text-sm font-medium transition-all"
-                      style={{ background: colors.primary }}
+                      className="w-full py-2 rounded-full border-2 text-sm font-medium transition-all"
+                      style={{ borderColor: colors.primary, color: colors.primary }}
                     >
-                      Choisir cette formule
+                      Commander
                     </motion.button>
                   </div>
                 </motion.div>
               ))}
             </div>
+            {pastries.length === 0 && (
+              <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucune pâtisserie disponible pour le moment.</p>
+            )}
           </div>
-        </div>
-      </SectionWithAnimation>
-      <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
-        <div className="text-center mb-12">
-          <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-            NOS FORMULES
-          </span>
-          <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-            Packs Traiteur
-          </h2>
-          <Utensils size={32} className="mx-auto mb-4" style={{ color: colors.primary }} />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Pack Normal */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -10 }}
-            className="bg-white rounded-2xl overflow-hidden shadow-lg border-t-4"
-            style={{ borderTopColor: colors.primary }}
-          >
-            <div className="p-6">
-              <div className="text-center mb-4">
-                <h3 className="text-2xl font-bold mb-2">{menuPacks.normal.name}</h3>
-                <p className="text-lg font-semibold" style={{ color: colors.primary }}>{menuPacks.normal.price}</p>
-              </div>
-              <ul className="space-y-3">
-                {menuPacks.normal.items.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <CheckCircle size={16} className="mt-0.5 shrink-0" style={{ color: colors.primary }} />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                className="w-full mt-6 py-2 rounded-full border-2 text-sm font-medium transition-all"
-                style={{ borderColor: colors.primary, color: colors.primary }}
-              >
-                Choisir ce pack
-              </motion.button>
-            </div>
-          </motion.div>
+        </SectionWithAnimation>
 
-          {/* Pack Premium */}
-          <motion.div
-            initial={{ opacity: 0, y: -50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -10, scale: 1.02 }}
-            className="bg-white rounded-2xl overflow-hidden shadow-xl border-2 relative"
-            style={{ borderColor: colors.primary }}
-          >
-            <div className="absolute top-0 right-0">
-              <div className="px-4 py-1 text-white text-xs font-semibold rounded-bl-lg" style={{ background: colors.primary }}>
-                POPULAIRE
-              </div>
+        {/* Boissons & Fruits secs pour tables */}
+        <SectionWithAnimation className="py-20 px-10">
+          <div className="max-w-350 mx-auto">
+            <div className="text-center mb-12">
+              <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
+                SUR VOTRE TABLE
+              </span>
+              <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
+                Boissons & Fruits secs
+              </h2>
+              <div className="w-20 h-0.5 mx-auto mb-6" style={{ background: colors.primary }} />
+              <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
+                Pour le confort de vos invités, nous mettons à disposition sur chaque table
+              </p>
             </div>
-            <div className="p-6">
-              <div className="text-center mb-4">
-                <Star size={24} className="mx-auto mb-2" style={{ color: colors.primary }} />
-                <h3 className="text-2xl font-bold mb-2">{menuPacks.premium.name}</h3>
-                <p className="text-lg font-semibold" style={{ color: colors.primary }}>{menuPacks.premium.price}</p>
-              </div>
-              <ul className="space-y-3">
-                {menuPacks.premium.items.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <CheckCircle size={16} className="mt-0.5 shrink-0" style={{ color: colors.primary }} />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                className="w-full mt-6 py-2 rounded-full text-white text-sm font-medium"
-                style={{ background: colors.primary }}
-              >
-                Choisir ce pack
-              </motion.button>
-            </div>
-          </motion.div>
 
-          {/* Pack Gold */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            whileHover={{ y: -10 }}
-            className="bg-linear-to-br from-amber-50 to-amber-100 rounded-2xl overflow-hidden shadow-lg relative"
-          >
-            <div className="absolute top-0 left-0 right-0">
-              <div className="flex justify-center -mt-2">
-                <Crown size={32} style={{ color: colors.primary }} />
-              </div>
-            </div>
-            <div className="p-6 pt-8">
-              <div className="text-center mb-4">
-                <Gem size={24} className="mx-auto mb-2" style={{ color: colors.primary }} />
-                <h3 className="text-2xl font-bold mb-2">{menuPacks.gold.name}</h3>
-                <p className="text-lg font-semibold" style={{ color: colors.primary }}>{menuPacks.gold.price}</p>
-              </div>
-              <ul className="space-y-3">
-                {menuPacks.gold.items.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm">
-                    <CheckCircle size={16} className="mt-0.5 shrink-0" style={{ color: colors.primary }} />
-                    <span>{item}</span>
-                  </li>
+            {/* Boissons */}
+            <div className="mb-16">
+              <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
+                Boissons
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {drinks.map((drink, idx) => (
+                  <motion.div
+                    key={drink.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-xl overflow-hidden shadow-md group"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={drink.image} 
+                        alt={drink.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
+                          {drink.category}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-lg">{drink.name}</h4>
+                        <span className="text-sm font-bold" style={{ color: colors.primary }}>{drink.price}</span>
+                      </div>
+                      <p className="text-xs" style={{ color: colors.textLight }}>{drink.description}</p>
+                    </div>
+                  </motion.div>
                 ))}
-              </ul>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                className="w-full mt-6 py-2 rounded-full text-white text-sm font-medium"
-                style={{ background: colors.primary }}
-              >
-                Choisir ce pack
-              </motion.button>
+              </div>
+              {drinks.length === 0 && (
+                <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucune boisson disponible pour le moment.</p>
+              )}
             </div>
-          </motion.div>
-        </div>
-      </SectionWithAnimation>
 
-      {/* Section Call to Action */}
-      <SectionWithAnimation className="py-20 px-10">
-        <div className="max-w-250 mx-auto text-center">
-          <h2 className="text-[clamp(32px,5vw,42px)] font-medium mb-4">
-            {"Prêt à créer l'événement parfait ?"}
-          </h2>
-          <p className="text-lg mb-8" style={{ color: colors.textLight }}>
-            {"Contactez-nous dès aujourd'hui pour une consultation personnalisée"}
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="px-10 py-3 rounded-full text-white text-lg font-medium shadow-lg"
-            style={{ background: colors.primary }}
-          >
-            Demander un devis gratuit
-          </motion.button>
-        </div>
-      </SectionWithAnimation>
+            <div className="mb-16">
+              <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
+                Fruits secs & Douceurs
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sweets.map((sweet, idx) => (
+                  <motion.div
+                    key={sweet.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -5 }}
+                    className="bg-white rounded-xl overflow-hidden shadow-md group"
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={sweet.image} 
+                        alt={sweet.name}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      />
+                      <div className="absolute top-4 right-4">
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
+                          {sweet.type}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-semibold text-lg">{sweet.name}</h4>
+                        <span className="text-sm font-bold" style={{ color: colors.primary }}>{sweet.price}</span>
+                      </div>
+                      <p className="text-xs" style={{ color: colors.textLight }}>{sweet.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              {sweets.length === 0 && (
+                <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucune douceur disponible pour le moment.</p>
+              )}
+            </div>
+
+            {/* Formules pour tables */}
+            {tablePackages.length > 0 && (
+              <div className="mt-12">
+                <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
+                  Formules spéciales tables
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                  {tablePackages.map((pkg, idx) => (
+                    <motion.div
+                      key={pkg.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: idx * 0.1 }}
+                      viewport={{ once: true }}
+                      whileHover={{ y: -5 }}
+                      className={`rounded-2xl overflow-hidden shadow-lg relative ${
+                        pkg.featured ? 'border-2' : ''
+                      }`}
+                      style={{ 
+                        background: 'white',
+                        borderColor: pkg.featured ? colors.primary : 'transparent'
+                      }}
+                    >
+                      {pkg.featured && (
+                        <div className="absolute top-0 right-0">
+                          <div className="px-4 py-1 text-white text-xs font-semibold rounded-bl-lg" style={{ background: colors.primary }}>
+                            POPULAIRE
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <div className="text-center mb-4">
+                          <h4 className="text-xl font-bold mb-2">{pkg.name}</h4>
+                          <p className="text-lg font-semibold" style={{ color: colors.primary }}>{pkg.price}</p>
+                        </div>
+                        <ul className="space-y-2 mb-6">
+                          {pkg.items.map((item, i) => (
+                            <li key={i} className="flex items-start gap-2 text-sm">
+                              <CheckCircle size={14} className="mt-0.5 shrink-0" style={{ color: colors.primary }} />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          className="w-full py-2 rounded-full text-white text-sm font-medium transition-all"
+                          style={{ background: colors.primary }}
+                        >
+                          Choisir cette formule
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </SectionWithAnimation>
+
+        {/* Wedding Packages */}
+        {weddingPackages.length > 0 && (
+          <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
+            <div className="text-center mb-12">
+              <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
+                NOS FORMULES DE MARIAGE
+              </span>
+              <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
+                Formules Complètes
+              </h2>
+              <div className="w-20 h-0.5 mx-auto mb-4" style={{ background: colors.primary }} />
+              <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
+                Des formules tout inclus pour un mariage parfait, de A à Z
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {weddingPackages.map((pkg, idx) => {
+                const typeColor = getPackageColor(pkg.type);
+                const Icon = getPackageIcon(pkg.type);
+                
+                return (
+                  <motion.div
+                    key={pkg.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
+                    viewport={{ once: true }}
+                    whileHover={{ y: -8 }}
+                    className={`bg-white rounded-2xl overflow-hidden shadow-lg border-2 transition-all ${
+                      pkg.isPopular ? `border-[${colors.primary}]` : "border-transparent"
+                    }`}
+                  >
+                    {/* Badge Populaire */}
+                    {pkg.isPopular && (
+                      <div
+                        className="text-center py-1 text-xs font-medium text-white flex items-center justify-center gap-1"
+                        style={{ backgroundColor: colors.primary }}
+                      >
+                        <Sparkles size={12} />
+                        Formule la plus populaire
+                      </div>
+                    )}
+
+                    {/* En-tête avec type */}
+                    <div className="p-6" style={{ backgroundColor: `${typeColor}10` }}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-12 h-12 rounded-full flex items-center justify-center text-white"
+                            style={{ backgroundColor: typeColor }}
+                          >
+                            {Icon}
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold" style={{ color: colors.textDark }}>
+                              {pkg.name}
+                            </h3>
+                            <p className="text-xs" style={{ color: colors.textLight }}>
+                              {pkg.type === "normal" && "Formule essentielle pour mariage classique"}
+                              {pkg.type === "pro" && "Formule complète avec prestations premium"}
+                              {pkg.type === "gold" && "Formule luxe avec wedding planner"}
+                              {pkg.type === "premium" && "Formule prestige avec services exclusifs"}
+                            </p>
+                          </div>
+                        </div>
+                        <span
+                          className="text-xs font-semibold px-3 py-1 rounded-full uppercase"
+                          style={{ backgroundColor: typeColor, color: "white" }}
+                        >
+                          {pkg.type}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-6">
+                      {/* Image */}
+                      {pkg.image && (
+                        <div className="h-48 rounded-lg overflow-hidden mb-4 bg-gray-100">
+                          <img src={pkg.image} alt={pkg.name} className="w-full h-full object-cover" />
+                        </div>
+                      )}
+
+                      {/* Description */}
+                      <p className="text-sm mb-4" style={{ color: colors.textLight }}>
+                        {pkg.description}
+                      </p>
+
+                      {/* Prix */}
+                      <div className="flex flex-wrap items-center gap-4 mb-4 p-3 rounded-lg" style={{ backgroundColor: `${colors.primary}08` }}>
+                        <div>
+                          <p className="text-xs" style={{ color: colors.textLight }}>Prix total</p>
+                          <p className="font-bold text-lg" style={{ color: colors.primary }}>{pkg.price}</p>
+                        </div>
+                        {pkg.priceDetails?.perPerson && (
+                          <div>
+                            <p className="text-xs" style={{ color: colors.textLight }}>Par personne</p>
+                            <p className="font-semibold" style={{ color: colors.textDark }}>{pkg.priceDetails.perPerson}</p>
+                          </div>
+                        )}
+                        {pkg.priceDetails?.minGuests && pkg.priceDetails?.maxGuests && (
+                          <div>
+                            <p className="text-xs" style={{ color: colors.textLight }}>Nombre d&apos;invités</p>
+                            <p className="font-semibold" style={{ color: colors.textDark }}>
+                              {pkg.priceDetails.minGuests} - {pkg.priceDetails.maxGuests}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Services inclus - badges */}
+                      <div className="flex flex-wrap gap-1.5 mb-4">
+                        {pkg.features.venue?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            🏛️ Salle
+                          </span>
+                        )}
+                        {pkg.features.band?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            🎵 Musique
+                          </span>
+                        )}
+                        {pkg.features.pastries?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            🍰 Pâtisserie
+                          </span>
+                        )}
+                        {pkg.features.drinks?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            🥤 Boissons
+                          </span>
+                        )}
+                        {pkg.features.sweets?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            🥜 Douceurs
+                          </span>
+                        )}
+                        {pkg.features.weddingPlanner?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            👰 Wedding Planner
+                          </span>
+                        )}
+                        {pkg.features.photography?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            📸 Photo
+                          </span>
+                        )}
+                        {pkg.features.animation?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            🎭 Animation
+                          </span>
+                        )}
+                        {pkg.features.decoration?.included && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}>
+                            🌸 Décoration
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Éléments inclus (3 premiers) */}
+                      <div className="mb-4">
+                        <p className="text-xs font-medium mb-1" style={{ color: colors.textDark }}>
+                          Ce qui est inclus :
+                        </p>
+                        <ul className="space-y-0.5">
+                          {pkg.includedItems.slice(0, 4).map((item, i) => (
+                            <li key={i} className="flex items-start gap-1.5 text-xs" style={{ color: colors.textLight }}>
+                              <CheckCircle size={10} className="mt-0.5 shrink-0" style={{ color: colors.primary }} />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                          {pkg.includedItems.length > 4 && (
+                            <li className="text-xs" style={{ color: colors.primary }}>
+                              + {pkg.includedItems.length - 4} autres prestations
+                            </li>
+                          )}
+                        </ul>
+                      </div>
+
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        className="w-full py-3 rounded-full text-white text-sm font-medium transition-all"
+                        style={{ background: colors.primary }}
+                      >
+                        Choisir cette formule
+                      </motion.button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </SectionWithAnimation>
+        )}
+      </section>
+
+      {/* Section Contact */}
+      <section id="contact">
+        <SectionWithAnimation className="py-20 px-10">
+          <div className="max-w-250 mx-auto text-center">
+            <h2 className="text-[clamp(32px,5vw,42px)] font-medium mb-4">
+              {"Prêt à créer l'événement parfait ?"}
+            </h2>
+            <p className="text-lg mb-8" style={{ color: colors.textLight }}>
+              {"Contactez-nous dès aujourd'hui pour une consultation personnalisée"}
+            </p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-10 py-3 rounded-full text-white text-lg font-medium shadow-lg"
+              style={{ background: colors.primary }}
+            >
+              Demander un devis gratuit
+            </motion.button>
+          </div>
+        </SectionWithAnimation>
+      </section>
+      
       <ReviewsSection colors={colors} />
-
       <Footer colors={colors} />
     </div>
   );

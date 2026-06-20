@@ -1,8 +1,12 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star } from "lucide-react";
+import { RootState } from "@/store/store";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { addReview } from "@/store/reviewsSlice";
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -13,23 +17,50 @@ interface ReviewModalProps {
     textDark: string;
     textLight: string;
   };
-  onReviewSubmit: (review: { name: string; rating: number; comment: string }) => void;
 }
 
-export const ReviewModal = ({ isOpen, onClose, colors, onReviewSubmit }: ReviewModalProps) => {
+export const ReviewModal = ({ isOpen, onClose, colors }: ReviewModalProps) => {
+  const dispatch = useAppDispatch();
+  const { user } = useAppSelector((state: RootState) => state.auth);
   const [name, setName] = useState("");
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Remplir automatiquement le nom si l'utilisateur est connecté
+  useEffect(() => {
+    if (user?.displayName) {
+      setName(user.displayName);
+    } else if (user?.email) {
+      setName(user.email.split('@')[0]);
+    }
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && rating > 0 && comment) {
-      onReviewSubmit({ name, rating, comment });
-      setName("");
-      setRating(0);
-      setComment("");
-      onClose();
+    if (name && rating > 0 && comment && !isSubmitting) {
+      setIsSubmitting(true);
+      
+      try {
+        await dispatch(addReview({
+          name: name,
+          rating: rating,
+          comment: comment,
+          userId: user?.uid
+        })).unwrap();
+        
+        // Réinitialiser le formulaire
+        setName(user?.displayName || "");
+        setRating(0);
+        setComment("");
+        onClose();
+      } catch (error) {
+        console.error("Erreur lors de l'ajout de l'avis:", error);
+        alert("Une erreur est survenue. Veuillez réessayer.");
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -74,10 +105,11 @@ export const ReviewModal = ({ isOpen, onClose, colors, onReviewSubmit }: ReviewM
                   </label>
                   <input
                     type="text"
+                    disabled={!!user?.displayName || isSubmitting}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full px-4 py-3 rounded-xl border focus:outline-none transition-all"
+                    className="w-full px-4 py-3 rounded-xl border focus:outline-none transition-all disabled:opacity-60"
                     style={{
                       borderColor: `${colors.textLight}30`,
                       background: colors.background,
@@ -98,10 +130,11 @@ export const ReviewModal = ({ isOpen, onClose, colors, onReviewSubmit }: ReviewM
                       <button
                         key={star}
                         type="button"
-                        onClick={() => setRating(star)}
-                        onMouseEnter={() => setHoverRating(star)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        className="transition-transform hover:scale-110"
+                        onClick={() => !isSubmitting && setRating(star)}
+                        onMouseEnter={() => !isSubmitting && setHoverRating(star)}
+                        onMouseLeave={() => !isSubmitting && setHoverRating(0)}
+                        className="transition-transform hover:scale-110 disabled:opacity-50"
+                        disabled={isSubmitting}
                       >
                         <Star
                           size={32}
@@ -125,7 +158,8 @@ export const ReviewModal = ({ isOpen, onClose, colors, onReviewSubmit }: ReviewM
                     onChange={(e) => setComment(e.target.value)}
                     required
                     rows={4}
-                    className="w-full px-4 py-3 rounded-xl border focus:outline-none transition-all resize-none"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-3 rounded-xl border focus:outline-none transition-all resize-none disabled:opacity-60"
                     style={{
                       borderColor: `${colors.textLight}30`,
                       background: colors.background,
@@ -139,12 +173,13 @@ export const ReviewModal = ({ isOpen, onClose, colors, onReviewSubmit }: ReviewM
 
                 <motion.button
                   type="submit"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-3 rounded-full text-white font-medium transition-all shadow-lg"
+                  whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                  whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
+                  className="w-full py-3 rounded-full text-white font-medium transition-all shadow-lg disabled:opacity-50"
                   style={{ background: colors.primary }}
+                  disabled={isSubmitting}
                 >
-                  Publier mon avis
+                  {isSubmitting ? "Envoi en cours..." : "Publier mon avis"}
                 </motion.button>
               </form>
             </div>

@@ -44,7 +44,7 @@ export const Hero = ({ colors }: HeroProps) => {
           className="text-[15px] leading-relaxed mb-8 max-w-112.5"
           style={{ color: colors.textLight }}
         >
-          Make every celebration unforgettable with Dar Bouraoui Event. From weddings and engagements to corporate events and private parties, we transform your vision into a unique experience filled with elegance, creativity, and memorable moments. Let us create an event that reflects your style and exceeds your expectations.
+          Make every celebration unforgettable with Carthage Events. From weddings and engagements to corporate events and private parties, we transform your vision into a unique experience filled with elegance, creativity, and memorable moments. Let us create an event that reflects your style and exceeds your expectations.
         </motion.p>
         <motion.button
           initial={{ opacity: 0, scale: 0.8 }}

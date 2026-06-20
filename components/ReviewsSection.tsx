@@ -1,18 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Star, MessageCircle, User, Calendar, ThumbsUp } from "lucide-react";
+import { Star, MessageCircle, User, Calendar } from "lucide-react";
 import { ReviewModal } from "./ReviewModal";
-
-interface Review {
-  id: number;
-  name: string;
-  rating: number;
-  comment: string;
-  date: string;
-  likes: number;
-}
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { fetchReviews, subscribeToReviews } from "@/store/reviewsSlice";
 
 interface ReviewsSectionProps {
   colors: {
@@ -24,73 +17,41 @@ interface ReviewsSectionProps {
   };
 }
 
-const initialReviews: Review[] = [
-  {
-    id: 1,
-    name: "Sarah M.",
-    rating: 5,
-    comment: "Une organisation exceptionnelle pour notre mariage ! Dar Bouraoui Events a dépassé toutes nos attentes. Tout était parfait, du début à la fin. Merci pour cette journée inoubliable !",
-    date: "15 Mars 2024",
-    likes: 24
-  },
-  {
-    id: 2,
-    name: "Ahmed K.",
-    rating: 5,
-    comment: "Professionnalisme et créativité au rendez-vous. Notre séminaire d'entreprise a été un franc succès grâce à leur équipe. Je recommande vivement !",
-    date: "28 Février 2024",
-    likes: 18
-  },
-  {
-    id: 3,
-    name: "Nadia B.",
-    rating: 4,
-    comment: "Très belle expérience avec Dar Bouraoui. La décoration était magnifique et l'équipe à l'écoute. Seul petit bémol sur les délais, mais globalement satisfaite.",
-    date: "10 Janvier 2024",
-    likes: 12
-  },
-  {
-    id: 4,
-    name: "Mohamed T.",
-    rating: 5,
-    comment: "La meilleure agence événementielle en Tunisie ! Ils ont organisé nos fiançailles et tout était parfait. Un grand merci à toute l'équipe !",
-    date: "20 Décembre 2023",
-    likes: 31
-  }
-];
-
 export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
-  const [reviews, setReviews] = useState<Review[]>(initialReviews);
+  const dispatch = useAppDispatch();
+  const { reviews, loading, averageRating, totalReviews } = useAppSelector(
+    (state) => state.reviews
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [likedReviews, setLikedReviews] = useState<number[]>([]);
 
-  const handleReviewSubmit = (newReview: { name: string; rating: number; comment: string }) => {
-    const review: Review = {
-      id: reviews.length + 1,
-      name: newReview.name,
-      rating: newReview.rating,
-      comment: newReview.comment,
-      date: new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }),
-      likes: 0
+  // Charger les avis et s'abonner aux mises à jour en temps réel
+  useEffect(() => {
+    // Chargement initial
+    dispatch(fetchReviews());
+    
+    // Option 1: Mise à jour en temps réel (recommended)
+    const unsubscribe = dispatch(subscribeToReviews());
+    
+    // Nettoyer l'abonnement
+    return () => {
+      if (unsubscribe && typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
     };
-    setReviews([review, ...reviews]);
-  };
+  }, [dispatch]);
 
-  const handleLike = (id: number) => {
-    if (likedReviews.includes(id)) {
-      setReviews(reviews.map(review =>
-        review.id === id ? { ...review, likes: review.likes - 1 } : review
-      ));
-      setLikedReviews(likedReviews.filter(likeId => likeId !== id));
-    } else {
-      setReviews(reviews.map(review =>
-        review.id === id ? { ...review, likes: review.likes + 1 } : review
-      ));
-      setLikedReviews([...likedReviews, id]);
-    }
-  };
-
-  const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+  // Affichage du loader
+  if (loading && reviews.length === 0) {
+    return (
+      <section className="py-20 px-10" style={{ background: colors.secondary }}>
+        <div className="max-w-350 mx-auto text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-t-transparent" 
+               style={{ borderColor: `${colors.primary} transparent transparent transparent` }} />
+          <p className="mt-4" style={{ color: colors.textLight }}>Chargement des avis...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <>
@@ -121,7 +82,7 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
                 {averageRating.toFixed(1)} / 5
               </p>
               <p className="text-sm" style={{ color: colors.textLight }}>
-                Basé sur {reviews.length} avis clients
+                Basé sur {totalReviews} avis clients
               </p>
             </div>
 
@@ -142,9 +103,8 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
               <motion.div
                 key={review.id}
                 initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                viewport={{ once: true }}
                 whileHover={{ y: -5 }}
                 className="bg-white rounded-2xl p-6 shadow-lg"
               >
@@ -183,27 +143,12 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
                 <p className="text-sm leading-relaxed mb-4" style={{ color: colors.textLight }}>
                   {review.comment}
                 </p>
-
-                <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: `${colors.textLight}15` }}>
-                  <button
-                    onClick={() => handleLike(review.id)}
-                    className="flex items-center gap-2 text-sm transition-colors hover:opacity-70"
-                    style={{ color: likedReviews.includes(review.id) ? colors.primary : colors.textLight }}
-                  >
-                    <ThumbsUp size={16} />
-                    <span>{review.likes}</span>
-                  </button>
-                  <div className="flex items-center gap-1 text-xs" style={{ color: colors.textLight }}>
-                    <MessageCircle size={12} />
-                    <span>Recommandé</span>
-                  </div>
-                </div>
               </motion.div>
             ))}
           </div>
 
           {/* Message si pas d'avis */}
-          {reviews.length === 0 && (
+          {reviews.length === 0 && !loading && (
             <div className="text-center py-12">
               <MessageCircle size={48} className="mx-auto mb-4" style={{ color: colors.textLight }} />
               <p style={{ color: colors.textLight }}>Aucun avis pour le moment. Soyez le premier à donner votre avis !</p>
@@ -216,7 +161,6 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         colors={colors}
-        onReviewSubmit={handleReviewSubmit}
       />
     </>
   );

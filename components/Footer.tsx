@@ -23,7 +23,7 @@ export const Footer = ({ colors }: FooterProps) => {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
         >
-          <h3 className="text-lg mb-4">Dar Bouraoui CARTHAGE</h3>
+          <h3 className="text-lg mb-4"> </h3>
           <p className="text-xs text-white/50 leading-relaxed">
             Creating unforgettable moments for your special day.
           </p>

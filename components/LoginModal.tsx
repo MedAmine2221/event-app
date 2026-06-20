@@ -115,10 +115,10 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                 </button>
                 <div className="text-center">
                   <h2 className="text-2xl font-medium mb-1" style={{ color: colors.textDark }}>
-                    Dar Bouraoui
+                    CARTHAGE
                   </h2>
                   <p className="text-xs tracking-[2px]" style={{ color: colors.primary }}>
-                    CARTHAGE
+                    Events
                   </p>
                 </div>
               </div>

@@ -9,9 +9,7 @@ import { logout, setUser } from "@/store/authSlice";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import Image from "next/image";
-import Modal from "./Modal";
-
-const navLinks = ["HOME", "About", "Services", "Blog", "Contact"];
+import { navLinks } from "@/constants";
 
 interface NavbarProps {
   colors: {
@@ -30,7 +28,7 @@ export const Navbar = ({ colors }: NavbarProps) => {
   
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
-
+  
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       dispatch(setUser(user));
@@ -43,9 +41,35 @@ export const Navbar = ({ colors }: NavbarProps) => {
     setIsUserMenuOpen(false);
   };
 
+  // Smooth scroll function
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, link: string) => {
+    // If it's an external link or admin page, let default behavior happen
+    if (link.startsWith("http") || link.startsWith("/admin")) {
+      return;
+    }
+    
+    e.preventDefault();
+    const targetId = link.replace("#", "");
+    const targetElement = document.getElementById(targetId);
+    
+    if (targetElement) {
+      const navbarHeight = 80; // Height of the navbar
+      const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+      
+      window.scrollTo({
+        top: targetPosition,
+        behavior: "smooth"
+      });
+      
+      // Close mobile menu if open
+      if (mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    }
+  };
+
   return (
     <>
-
       <nav className="fixed top-0 left-0 right-0 z-1000 bg-[rgba(251,248,241,0.95)] backdrop-blur-sm border-b border-black/5">
         <div className="flex items-center justify-between h-20 px-8 md:px-10 max-w-350 mx-auto">
           <motion.div
@@ -54,27 +78,33 @@ export const Navbar = ({ colors }: NavbarProps) => {
             transition={{ duration: 0.5 }}
           >
             <span className="text-xl tracking-[4px] font-medium" style={{ color: colors.primary }}>
-              Dar Bouraoui
+              Carthage
             </span>
             <span className="text-xs tracking-[2px] block" style={{ color: colors.textLight }}>
-              CARTHAGE
+              Events
             </span>
           </motion.div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link, index) => (
+            {navLinks.filter((navLink) => {
+              if(navLink.name === "Admin" && user?.role !== "admin"){
+                return false;
+              } 
+              return true;
+            }).map((navLink, index) => (
               <motion.a
-                key={link}
-                href="#"
-                className="text-[13px] tracking-[1.5px] no-underline font-normal transition-colors duration-200"
+                key={navLink.name}
+                href={navLink.link}
+                className="text-[13px] tracking-[1.5px] no-underline font-normal transition-colors duration-200 cursor-pointer"
                 style={{ color: colors.textDark }}
                 whileHover={{ color: colors.primary }}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
+                onClick={(e) => handleNavClick(e, navLink.link)}
               >
-                {link}
+                {navLink.name}
               </motion.a>
             ))}
             
@@ -202,15 +232,20 @@ export const Navbar = ({ colors }: NavbarProps) => {
               className="md:hidden bg-[rgba(251,248,241,0.98)] backdrop-blur-sm border-t border-black/5"
             >
               <div className="flex flex-col items-center py-8 gap-6">
-                {navLinks.map((link) => (
+                {navLinks.filter((navLink) => {
+                  if(navLink.name === "Admin" && user?.role !== "admin"){
+                    return false;
+                  } 
+                  return true;
+                }).map((navLink) => (
                   <a
-                    key={link}
-                    href="#"
-                    className="text-[13px] tracking-[1.5px] no-underline"
+                    key={navLink.name}
+                    href={navLink.link}
+                    className="text-[13px] tracking-[1.5px] no-underline cursor-pointer"
                     style={{ color: colors.textDark }}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={(e) => handleNavClick(e, navLink.link)}
                   >
-                    {link}
+                    {navLink.name}
                   </a>
                 ))}
                 {user ? (
