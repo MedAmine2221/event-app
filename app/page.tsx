@@ -45,14 +45,14 @@ interface Venue {
 }
 
 interface Band {
-  id?: string;
+  id: string;
   name: string;
   genre: string;
+  price: string;
   image: string;
-  contact: string;
-  price?: string;
-  description?: string;
-  socialMedia: string[];
+  description: string;
+  contact?: string;
+  socialMedia?: string[];
 }
 
 interface Pastry {
@@ -62,6 +62,9 @@ interface Pastry {
   price: string;
   image: string;
   description: string;
+  contact?: string;
+  socialMedia?: string[];
+  products?: string[];
 }
 
 interface Drink {
@@ -578,26 +581,52 @@ const filteredVenues = useMemo(() => {
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {bands.map((band, idx) => (
-                <motion.div
-                  key={band.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ scale: 1.05 }}
-                  className="bg-white rounded-xl overflow-hidden shadow-md"
-                >
-                  <div className="h-48 overflow-hidden">
-                    <img src={band.image} alt={band.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium mb-1">{band.name}</h3>
-                    <p className="text-xs mb-2" style={{ color: colors.textLight }}>{band.genre}</p>
-                    <p className="text-sm font-semibold" style={{ color: colors.primary }}>{band.price}</p>
-                  </div>
-                </motion.div>
-              ))}
+{bands.map((band, idx) => (
+  <motion.div
+    key={band.id}
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ delay: idx * 0.1 }}
+    viewport={{ once: true }}
+    whileHover={{ scale: 1.03 }}
+    className="bg-white rounded-xl overflow-hidden shadow-md"
+  >
+    <div className="h-48 overflow-hidden">
+      <img src={band.image} alt={band.name} className="w-full h-full object-cover" />
+    </div>
+    <div className="p-4">
+      <h3 className="font-medium mb-1">{band.name}</h3>
+      <p className="text-xs mb-2" style={{ color: colors.textLight }}>{band.genre}</p>
+      {band.description && (
+        <p className="text-xs mb-2" style={{ color: colors.textLight }}>{band.description}</p>
+      )}
+      <p className="text-sm font-semibold mb-2" style={{ color: colors.primary }}>{band.price}</p>
+
+      {band.contact && (
+        <p className="text-xs mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
+          📞 {band.contact}
+        </p>
+      )}
+
+      {band.socialMedia && band.socialMedia.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {band.socialMedia.map((link, i) => (
+            <a
+              key={i}
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] px-2 py-0.5 rounded-full underline"
+              style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+            >
+              Réseau {i + 1}
+            </a>
+          ))}
+        </div>
+      )}
+    </div>
+  </motion.div>
+))}
             </div>
             {bands.length === 0 && (
               <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucun groupe disponible pour le moment.</p>
@@ -622,209 +651,85 @@ const filteredVenues = useMemo(() => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-              {pastries.map((pastry, idx) => (
-                <motion.div
-                  key={pastry.id}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.1 }}
-                  viewport={{ once: true }}
-                  whileHover={{ y: -8 }}
-                  className="bg-white rounded-2xl overflow-hidden shadow-lg group"
+{pastries.map((pastry, idx) => (
+  <motion.div
+    key={pastry.id}
+    initial={{ opacity: 0, y: 30 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ delay: idx * 0.1 }}
+    viewport={{ once: true }}
+    whileHover={{ y: -8 }}
+    className="bg-white rounded-2xl overflow-hidden shadow-lg group"
+  >
+    <div className="relative h-60 overflow-hidden">
+      <img 
+        src={pastry.image} 
+        alt={pastry.name}
+        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+      />
+      <div className="absolute top-4 right-4">
+        <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
+          {pastry.specialty}
+        </span>
+      </div>
+    </div>
+    <div className="p-6">
+      <div className="flex justify-between items-start mb-3">
+        <h3 className="text-xl font-semibold">{pastry.name}</h3>
+        <p className="text-sm font-bold" style={{ color: colors.primary }}>{pastry.price}</p>
+      </div>
+
+      {pastry.description && (
+        <p className="text-sm mb-4" style={{ color: colors.textLight }}>
+          {pastry.description}
+        </p>
+      )}
+
+      {pastry.products && pastry.products.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-4">
+          {pastry.products.map((product, i) => (
+            <span
+              key={i}
+              className="text-[11px] px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: `${colors.primary}10`, color: colors.primary }}
+            >
+              {product}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {(pastry.contact || (pastry.socialMedia && pastry.socialMedia.length > 0)) && (
+        <div className="pt-4 border-t flex items-center justify-between flex-wrap gap-2" style={{ borderColor: `${colors.textLight}15` }}>
+          {pastry.contact && (
+            <p className="text-xs flex items-center gap-1" style={{ color: colors.textLight }}>
+              📞 {pastry.contact}
+            </p>
+          )}
+          {pastry.socialMedia && pastry.socialMedia.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {pastry.socialMedia.map((link, i) => (
+                <a
+                  key={i}
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] px-2 py-0.5 rounded-full underline"
+                  style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
                 >
-                  <div className="relative h-60 overflow-hidden">
-                    <img 
-                      src={pastry.image} 
-                      alt={pastry.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute top-4 right-4">
-                      <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
-                        {pastry.specialty}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-3">
-                      <h3 className="text-xl font-semibold">{pastry.name}</h3>
-                      <p className="text-sm font-bold" style={{ color: colors.primary }}>{pastry.price}</p>
-                    </div>
-                    <p className="text-sm mb-4" style={{ color: colors.textLight }}>
-                      {pastry.description}
-                    </p>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      className="w-full py-2 rounded-full border-2 text-sm font-medium transition-all"
-                      style={{ borderColor: colors.primary, color: colors.primary }}
-                    >
-                      Commander
-                    </motion.button>
-                  </div>
-                </motion.div>
+                  Réseau {i + 1}
+                </a>
               ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </motion.div>
+))}
             </div>
             {pastries.length === 0 && (
               <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucune pâtisserie disponible pour le moment.</p>
-            )}
-          </div>
-        </SectionWithAnimation>
-
-        {/* Boissons & Fruits secs pour tables */}
-        <SectionWithAnimation className="py-20 px-10">
-          <div className="max-w-350 mx-auto">
-            <div className="text-center mb-12">
-              <span className="text-xs tracking-[4px] uppercase" style={{ color: colors.primary }}>
-                SUR VOTRE TABLE
-              </span>
-              <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">
-                Boissons & Fruits secs
-              </h2>
-              <div className="w-20 h-0.5 mx-auto mb-6" style={{ background: colors.primary }} />
-              <p className="text-sm max-w-2xl mx-auto" style={{ color: colors.textLight }}>
-                Pour le confort de vos invités, nous mettons à disposition sur chaque table
-              </p>
-            </div>
-
-            {/* Boissons */}
-            <div className="mb-16">
-              <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
-                Boissons
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {drinks.map((drink, idx) => (
-                  <motion.div
-                    key={drink.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl overflow-hidden shadow-md group"
-                  >
-                    <div className="relative h-48 overflow-hidden">
-                      <img 
-                        src={drink.image} 
-                        alt={drink.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute top-4 right-4">
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
-                          {drink.category}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-lg">{drink.name}</h4>
-                        <span className="text-sm font-bold" style={{ color: colors.primary }}>{drink.price}</span>
-                      </div>
-                      <p className="text-xs" style={{ color: colors.textLight }}>{drink.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              {drinks.length === 0 && (
-                <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucune boisson disponible pour le moment.</p>
-              )}
-            </div>
-
-            <div className="mb-16">
-              <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
-                Fruits secs & Douceurs
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {sweets.map((sweet, idx) => (
-                  <motion.div
-                    key={sweet.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl overflow-hidden shadow-md group"
-                  >
-                    <div className="relative h-48 overflow-hidden">
-                      <img 
-                        src={sweet.image} 
-                        alt={sweet.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute top-4 right-4">
-                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/90" style={{ color: colors.primary }}>
-                          {sweet.type}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h4 className="font-semibold text-lg">{sweet.name}</h4>
-                        <span className="text-sm font-bold" style={{ color: colors.primary }}>{sweet.price}</span>
-                      </div>
-                      <p className="text-xs" style={{ color: colors.textLight }}>{sweet.description}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              {sweets.length === 0 && (
-                <p className="text-center text-sm" style={{ color: colors.textLight }}>Aucune douceur disponible pour le moment.</p>
-              )}
-            </div>
-
-            {/* Formules pour tables */}
-            {tablePackages.length > 0 && (
-              <div className="mt-12">
-                <h3 className="text-2xl font-medium mb-6 text-center" style={{ color: colors.textDark }}>
-                  Formules spéciales tables
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  {tablePackages.map((pkg, idx) => (
-                    <motion.div
-                      key={pkg.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      whileInView={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: idx * 0.1 }}
-                      viewport={{ once: true }}
-                      whileHover={{ y: -5 }}
-                      className={`rounded-2xl overflow-hidden shadow-lg relative ${
-                        pkg.featured ? 'border-2' : ''
-                      }`}
-                      style={{ 
-                        background: 'white',
-                        borderColor: pkg.featured ? colors.primary : 'transparent'
-                      }}
-                    >
-                      {pkg.featured && (
-                        <div className="absolute top-0 right-0">
-                          <div className="px-4 py-1 text-white text-xs font-semibold rounded-bl-lg" style={{ background: colors.primary }}>
-                            POPULAIRE
-                          </div>
-                        </div>
-                      )}
-                      <div className="p-6">
-                        <div className="text-center mb-4">
-                          <h4 className="text-xl font-bold mb-2">{pkg.name}</h4>
-                          <p className="text-lg font-semibold" style={{ color: colors.primary }}>{pkg.price}</p>
-                        </div>
-                        <ul className="space-y-2 mb-6">
-                          {pkg.items.map((item, i) => (
-                            <li key={i} className="flex items-start gap-2 text-sm">
-                              <CheckCircle size={14} className="mt-0.5 shrink-0" style={{ color: colors.primary }} />
-                              <span>{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        <motion.button
-                          whileHover={{ scale: 1.05 }}
-                          className="w-full py-2 rounded-full text-white text-sm font-medium transition-all"
-                          style={{ background: colors.primary }}
-                        >
-                          Choisir cette formule
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
             )}
           </div>
         </SectionWithAnimation>
