@@ -397,7 +397,6 @@ const filteredVenues = useMemo(() => {
         </SectionWithAnimation>
       </section>
 
-      {/* Section Galerie - GALLERY */}
       <section id="gallery">
         {galleryImages.length > 0 && (
           <SectionWithAnimation className="py-20 px-10 max-w-350 mx-auto">
