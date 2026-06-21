@@ -4,6 +4,8 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import { useAppSelector } from "@/store/hooks";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
@@ -79,6 +81,7 @@ export const PackReservationModal = ({
   initialDate,
   initialPeriod, 
 }: PackReservationModalProps) => {
+  const { user } = useAppSelector((state) => state.auth);
   const [step, setStep] = useState<Step>(initialPackId ? "venue" : "pack");
   const [selectedPackId, setSelectedPackId] = useState<PackId | null>(initialPackId || null);
   
@@ -123,7 +126,20 @@ export const PackReservationModal = ({
       setPeriod(initialPeriod || null);
     }
   }, [isOpen, initialPackId, initialDate, initialPeriod]);
-
+useEffect(() => {
+  if (isOpen) {
+    setStep(initialPackId ? "venue" : "pack");
+    setSelectedPackId(initialPackId || null);
+    setDate(initialDate || "");
+    setPeriod(initialPeriod || null);
+    setFormData({
+      clientName: user?.displayName || "",
+      clientEmail: user?.email || "",
+      clientPhone: "",
+      message: "",
+    });
+  }
+}, [isOpen, initialPackId, initialDate, initialPeriod, user]);
   const selectedVenue = useMemo(
     () => venues.find((v) => v.id === selectedVenueId) || null,
     [venues, selectedVenueId]
@@ -133,18 +149,23 @@ export const PackReservationModal = ({
 
   if (!isOpen) return null;
 
-  const resetAndClose = () => {
-    setStep(initialPackId ? "venue" : "pack");
-    setSelectedPackId(initialPackId || null);
-    setDate(initialDate || "");        
-    setPeriod(initialPeriod || null);  
-    setSelectedVenueId(null);
-    setDecorChoiceId(null);
-    setJuiceChoice("");
-    setFormData({ clientName: "", clientEmail: "", clientPhone: "", message: "" });
-    setSubmitError("");
-    onClose();
-  };
+const resetAndClose = () => {
+  setStep(initialPackId ? "venue" : "pack");
+  setSelectedPackId(initialPackId || null);
+  setDate(initialDate || "");
+  setPeriod(initialPeriod || null);
+  setSelectedVenueId(null);
+  setDecorChoiceId(null);
+  setJuiceChoice("");
+  setFormData({
+    clientName: user?.displayName || "",
+    clientEmail: user?.email || "",
+    clientPhone: "",
+    message: "",
+  });
+  setSubmitError("");
+  onClose();
+};
 
 const handleSubmit = async () => {
     if (!selectedPack || !selectedVenue || !date || !period) return;
@@ -512,16 +533,18 @@ const handleSubmit = async () => {
                   placeholder="Nom complet *"
                   value={formData.clientName}
                   onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 disabled:opacity-60"
                   style={{ borderColor: `${colors.textLight}30` }}
+                  disabled={!!user?.displayName}
                 />
                 <input
                   type="email"
                   placeholder="Email *"
                   value={formData.clientEmail}
                   onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2.5 rounded-lg border text-sm focus:outline-none focus:ring-2 disabled:opacity-60"
                   style={{ borderColor: `${colors.textLight}30` }}
+                  disabled={!!user?.email}
                 />
                 <input
                   type="tel"

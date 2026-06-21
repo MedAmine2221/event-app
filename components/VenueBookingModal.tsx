@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/VenueBookingModal.tsx
 /* eslint-disable @next/next/no-img-element */
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { getOrCreateSlots, bookSlot } from "@/lib/booking-service";
 import { TimeSlot } from "@/types/booking";
+import { useAppSelector } from "@/store/hooks";
 
 interface VenueBookingModalProps {
   isOpen: boolean;
@@ -43,6 +45,7 @@ export const VenueBookingModal = ({
   venue,
   colors,
 }: VenueBookingModalProps) => {
+  const { user } = useAppSelector((state) => state.auth);
   const [step, setStep] = useState<"date" | "form" | "success">("date");
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedPeriod, setSelectedPeriod] = useState<"morning" | "evening" | null>(null);
@@ -80,7 +83,15 @@ export const VenueBookingModal = ({
         fetchSlots();
     }
     }, [isOpen, selectedDate, venue?.id]);
-
+useEffect(() => {
+  if (isOpen && user) {
+    setFormData((prev) => ({
+      ...prev,
+      clientName: prev.clientName || user.displayName || "",
+      clientEmail: prev.clientEmail || user.email || "",
+    }));
+  }
+}, [isOpen, user]);
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
     setSelectedPeriod(null);
@@ -138,14 +149,19 @@ export const VenueBookingModal = ({
     }
   };
 
-  const resetAndClose = () => {
-    setStep("date");
-    setSelectedDate("");
-    setSelectedPeriod(null);
-    setFormData({ clientName: "", clientEmail: "", clientPhone: "", message: "" });
-    setError("");
-    onClose();
-  };
+const resetAndClose = () => {
+  setStep("date");
+  setSelectedDate("");
+  setSelectedPeriod(null);
+  setFormData({
+    clientName: user?.displayName || "",
+    clientEmail: user?.email || "",
+    clientPhone: "",
+    message: "",
+  });
+  setError("");
+  onClose();
+};
 
   if (!isOpen) return null;
 
@@ -289,30 +305,32 @@ export const VenueBookingModal = ({
                   <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
                     Nom complet *
                   </label>
-                  <input
+                    <input
                     type="text"
                     value={formData.clientName}
                     onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2"
+                    className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 disabled:opacity-60"
                     style={{ borderColor: `${colors.textLight}30` }}
                     placeholder="Votre nom"
                     required
-                  />
+                    disabled={!!user?.displayName}
+                    />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
                     Email *
                   </label>
-                  <input
+                    <input
                     type="email"
                     value={formData.clientEmail}
                     onChange={(e) => setFormData({ ...formData, clientEmail: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2"
+                    className="w-full px-4 py-3 rounded-xl border focus:outline-none focus:ring-2 disabled:opacity-60"
                     style={{ borderColor: `${colors.textLight}30` }}
                     placeholder="votre@email.com"
                     required
-                  />
+                    disabled={!!user?.email}
+                    />
                 </div>
 
                 <div>
