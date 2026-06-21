@@ -259,6 +259,33 @@ export const getVenueBookings = async (venueId: string): Promise<Booking[]> => {
 };
 
 // Récupérer toutes les réservations
+// export const getAllBookings = async (): Promise<Booking[]> => {
+//   const q = query(
+//     collection(db, BOOKINGS_COLLECTION),
+//     orderBy('createdAt', 'desc')
+//   );
+  
+//   const snapshot = await getDocs(q);
+//   const bookings: Booking[] = [];
+//   snapshot.forEach((doc) => {
+//     const data = doc.data();
+//     bookings.push({ 
+//       id: doc.id, 
+//       venueId: data.venueId,
+//       venueName: data.venueName,
+//       date: data.date,
+//       period: data.period,
+//       clientName: data.clientName,
+//       clientEmail: data.clientEmail,
+//       clientPhone: data.clientPhone,
+//       message: data.message,
+//       status: data.status,
+//       createdAt: data.createdAt,
+//       updatedAt: data.updatedAt
+//     });
+//   });
+//   return bookings;
+// };
 export const getAllBookings = async (): Promise<Booking[]> => {
   const q = query(
     collection(db, BOOKINGS_COLLECTION),
@@ -286,7 +313,6 @@ export const getAllBookings = async (): Promise<Booking[]> => {
   });
   return bookings;
 };
-
 // Vérifier la disponibilité d'un créneau spécifique
 export const checkSlotAvailability = async (
   venueId: string,

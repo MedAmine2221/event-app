@@ -18,6 +18,7 @@ import { ReservationPack, PackId, getSeasonLabel } from "@/types/pack";
 import { getReservationPacks } from "@/lib/pack-service";
 import { PackReservationModal } from "@/components/PackReservationModal";
 import { getSeason, getDisplayPrice, getDisplayPriceNumber } from "@/lib/seasonal-price-utils";
+import { VenueBookingModal } from "@/components/VenueBookingModal";
 
 type UnavailablePeriod = "morning" | "evening" | "full";
 
@@ -134,6 +135,8 @@ export default function Home() {
   const [sweets, setSweets] = useState<Sweet[]>([]);
   const [tablePackages, setTablePackages] = useState<TablePackage[]>([]);
   const [weddingPackages, setWeddingPackages] = useState<WeddingPackage[]>([]);
+  const [selectedVenueForBooking, setSelectedVenueForBooking] = useState<Venue | null>(null);
+const [isVenueBookingModalOpen, setIsVenueBookingModalOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
 const [reservationPacks, setReservationPacks] = useState<ReservationPack[]>([]);
 const [isPackModalOpen, setIsPackModalOpen] = useState(false);
@@ -528,6 +531,10 @@ const filteredVenues = useMemo(() => {
                     Tarif: {getDisplayPrice(venue, currentSeason)} DT
                   </p>
                   <motion.button
+                    onClick={() => {
+    setSelectedVenueForBooking(venue);
+    setIsVenueBookingModalOpen(true);
+  }}
                     whileHover={{ scale: 1.05 }}
                     className="w-full py-2 rounded-full text-white text-sm"
                     style={{ background: colors.primary }}
@@ -865,8 +872,17 @@ const filteredVenues = useMemo(() => {
         initialDate={filterValue.date}   
         initialPeriod={filterValue.period}
       />
-
+<VenueBookingModal
+  isOpen={isVenueBookingModalOpen}
+  onClose={() => {
+    setIsVenueBookingModalOpen(false);
+    setSelectedVenueForBooking(null);
+  }}
+  venue={selectedVenueForBooking as any}
+  colors={colors}
+/>
       <ReviewsSection colors={colors} />
+
       <Footer colors={colors} />
     </div>
   );
