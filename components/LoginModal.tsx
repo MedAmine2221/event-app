@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { signUp, signIn, clearError } from "@/store/authSlice";
+import { useRouter } from "next/navigation";
+
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ interface LoginModalProps {
 }
 
 export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -33,12 +36,15 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
   const dispatch = useAppDispatch();
   const { loading, error, user } = useAppSelector((state) => state.auth);
 
-  useEffect(() => {
-    if (user) {
-      onClose();
-      setFormData({ email: "", password: "", name: "", confirmPassword: "" });
+useEffect(() => {
+  if (user) {
+    onClose();
+    setFormData({ email: "", password: "", name: "", confirmPassword: "" });
+    if (user.role === "admin") {
+      router.push("/admin");
     }
-  }, [user, onClose]);
+  }
+}, [user, onClose, router]);
 
   useEffect(() => {
     if (error) {

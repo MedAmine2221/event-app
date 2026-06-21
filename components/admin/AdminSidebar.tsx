@@ -145,14 +145,6 @@ export const AdminSidebar = () => {
         <div className="border-t my-3" style={{ borderColor: `${colors.secondary}20` }} />
         
         <button
-          onClick={() => router.push("/")}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all mb-1"
-        >
-          <Home size={20} className="text-white/60" />
-          {sidebarOpen && <span className="text-sm text-white/60">Voir le site</span>}
-        </button>
-        
-        <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all"
         >
