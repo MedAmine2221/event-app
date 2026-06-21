@@ -18,8 +18,9 @@ import {
   Coffee,
   Sparkles,
 } from "lucide-react";
-import { ReservationPack, PackId, PACK_LABELS } from "@/types/pack";
+import { ReservationPack, PackId, PACK_LABELS, SEASONS } from "@/types/pack";
 import { createPackReservation } from "@/lib/pack-service";
+import { getSeason, getSeasonalPrice } from "@/lib/seasonal-price-utils";
 
 // Fonction pour vérifier la disponibilité d'une salle localement
 const isVenueAvailable = (
@@ -80,19 +81,20 @@ export const PackReservationModal = ({
 }: PackReservationModalProps) => {
   const [step, setStep] = useState<Step>(initialPackId ? "venue" : "pack");
   const [selectedPackId, setSelectedPackId] = useState<PackId | null>(initialPackId || null);
-
+  
   const [date, setDate] = useState(initialDate || "");                                   // ⬅️ modifié
   const [period, setPeriod] = useState<"morning" | "evening" | null>(initialPeriod || null); // ⬅️ modifié
-
+  
   const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
-
+  
   const [decorChoiceId, setDecorChoiceId] = useState<string | null>(null);
   const [juiceChoice, setJuiceChoice] = useState<string>("");
-
+  
   const [formData, setFormData] = useState({ clientName: "", clientEmail: "", clientPhone: "", message: "" });
   const [submitLoading, setSubmitLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
-
+  
+  const selectedSeason = date ? getSeason(new Date(date)) : null;
   const selectedPack = useMemo(
     () => packs.find((p) => p.packId === selectedPackId) || null,
     [packs, selectedPackId]
@@ -193,7 +195,12 @@ const handleSubmit = async () => {
     period &&
     (selectedPack.packId !== "pack1" || decorChoiceId) &&
     (selectedPack.packId !== "pack3" || juiceChoice);
-
+  const packPrice = selectedPack && selectedSeason 
+    ? getSeasonalPrice(selectedPack, selectedSeason) || selectedPack.price
+    : selectedPack?.price;
+  const venuePrice = selectedVenue && selectedSeason
+  ? getSeasonalPrice(selectedVenue, selectedSeason) || selectedVenue.price
+  : selectedVenue?.price;
   return (
     <AnimatePresence>
       <motion.div
@@ -554,7 +561,21 @@ const handleSubmit = async () => {
                 </div>
               </div>
             )}
-
+            <div className="p-3 rounded-lg text-sm" style={{ background: `${colors.primary}08`, color: colors.textDark }}>
+              <p><strong>{selectedPack?.name}</strong> — {selectedVenue?.name}</p>
+              <p style={{ color: colors.textLight }}>
+                {date && new Date(date).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })} · {period === "morning" ? "Matinée" : "Soirée"}
+              </p>
+              {selectedSeason && (
+                <p className="mt-1 text-xs" style={{ color: colors.primary }}>
+                  {SEASONS.find(s => s.value === selectedSeason)?.emoji} Tarif {SEASONS.find(s => s.value === selectedSeason)?.label}
+                </p>
+              )}
+              <div className="flex gap-4 mt-2 text-sm">
+                <span>Pack: <strong>{packPrice}</strong></span>
+                <span>Salle: <strong>{venuePrice}</strong></span>
+              </div>
+            </div>
             {step === "success" && (
               <div className="text-center py-6">
                 <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">

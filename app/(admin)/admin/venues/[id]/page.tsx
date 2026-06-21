@@ -75,10 +75,6 @@ export default function VenuePage() {
                 <span className="text-xs" style={{ color: colors.textLight }}>Tables</span>
                 <p className="font-medium">{venue.tables}</p>
               </div>
-              <div>
-                <span className="text-xs" style={{ color: colors.textLight }}>Chaises</span>
-                <p className="font-medium">{venue.chairs}</p>
-              </div>
             </div>
           </div>
         </div>

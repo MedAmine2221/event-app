@@ -18,7 +18,6 @@ import {
   Waves,
   Users,
   Table,
-  Armchair,
   Home,
   Sparkles,
   Square,
@@ -32,6 +31,8 @@ import {
 } from "lucide-react";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { VenueSeasonalPrice } from "@/types/pack";
+import { SeasonalPricesEditor } from "./SeasonalPricesEditor";
 
 type UnavailablePeriod = "morning" | "evening" | "full";
 
@@ -49,11 +50,12 @@ interface Venue {
   tables: number;
   chairs: number;
   type: "salle_fete" | "salle_planaire" | "espace_vert" | "espace_mer" | "jardin" | "terrasse";
-  price: string;
   surface?: string;
   isIndoor: boolean;
   featured: boolean;
   unavailableDates: UnavailableDate[];
+  seasonalPrices: VenueSeasonalPrice[];
+
 }
 const EMPTY_FORM: Omit<Venue, "id"> = {
   name: "",
@@ -63,7 +65,7 @@ const EMPTY_FORM: Omit<Venue, "id"> = {
   tables: 0,
   chairs: 0,
   type: "salle_fete",
-  price: "",
+  seasonalPrices: [],
   surface: "",
   isIndoor: true,
   featured: false,
@@ -168,8 +170,8 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
         data.push({
           id: d.id,
           ...venueData,
-          // S'assurer que unavailableDates est toujours un tableau
           unavailableDates: venueData.unavailableDates || [],
+          seasonalPrices: venueData.seasonalPrices || [], // ✅ AJOUTER ICI
         } as Venue);
       });
       setVenues(data);
@@ -275,14 +277,14 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError("");   
-    
-    if (!formData.name || !formData.capacity || !formData.price) {
+    setFormError("");
+
+    if (!formData.name || !formData.capacity) {
       setFormError("Tous les champs obligatoires doivent être remplis");
       return;
     }
     if (formData.tables <= 0) {
-      setFormError("Le nombre de tables et de chaises doit être supérieur à 0");
+      setFormError("Le nombre de tables doit être supérieur à 0");
       return;
     }
     if (!formData.image) {
@@ -291,8 +293,7 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
     }
 
     setSubmitLoading(true);
-    
-    // Créer une copie propre des données
+
     const dataToSave = {
       name: formData.name,
       description: formData.description,
@@ -301,11 +302,11 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
       tables: formData.tables,
       chairs: formData.chairs,
       type: formData.type,
-      price: formData.price,
+      seasonalPrices: formData.seasonalPrices || [], // ✅ AJOUTER ICI
       surface: formData.surface || "",
       isIndoor: formData.isIndoor,
       featured: formData.featured,
-      unavailableDates: formData.unavailableDates || [], // ← Important !
+      unavailableDates: formData.unavailableDates || [],
     };
 
     try {
@@ -335,7 +336,6 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
       console.error("Erreur suppression:", error);
     }
   };
-
   const openEditModal = (venue: Venue) => {
     setEditingVenue(venue);
     setFormData({
@@ -346,11 +346,11 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
       tables: venue.tables || 0,
       chairs: venue.chairs || 0,
       type: venue.type || "salle_fete",
-      price: venue.price || "",
+      seasonalPrices: venue.seasonalPrices || [],
       surface: venue.surface || "",
       isIndoor: venue.isIndoor !== undefined ? venue.isIndoor : true,
       featured: venue.featured || false,
-      unavailableDates: venue.unavailableDates || [], // ← Important !
+      unavailableDates: venue.unavailableDates || [],
     });
     setImagePreview(venue.image || "");
     setFormError("");
@@ -555,10 +555,6 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
                     <Table size={14} />
                     {venue.tables} tables
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Armchair size={14} />
-                    {venue.chairs} chaises
-                  </span>
                 </div>
 
                 {/* Surface */}
@@ -573,12 +569,6 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
                 <p className="text-sm mb-3 line-clamp-2" style={{ color: colors.textLight }}>
                   {venue.description}
                 </p>
-
-                {/* Prix */}
-                <p className="text-sm font-semibold mb-3" style={{ color: colors.primary }}>
-                  {venue.price}
-                </p>
-
                 {/* Dates indisponibles */}
                 {venue.unavailableDates && venue.unavailableDates.length > 0 && (
                   <div
@@ -713,22 +703,11 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
                   />
                 </div>
               </div>
-
-              {/* Prix */}
-              <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-                  Prix *
-                </label>
-                <input
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                  style={{ borderColor: `${colors.primary}50` }}
-                  placeholder="Ex: À partir de 5000 TND"
-                />
-              </div>
-
+              <SeasonalPricesEditor
+                seasonalPrices={formData.seasonalPrices || []}
+                onChange={(prices) => setFormData({ ...formData, seasonalPrices: prices })}
+                colors={colors}
+              />
               {/* Image */}
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>

@@ -17,6 +17,8 @@ import { db } from "@/lib/firebase";
 import { ReservationPack, PackId } from "@/types/pack";
 import { getReservationPacks } from "@/lib/pack-service";
 import { PackReservationModal } from "@/components/PackReservationModal";
+import { getSeason, getDisplayPrice, getDisplayPriceNumber } from "@/lib/seasonal-price-utils";
+
 type UnavailablePeriod = "morning" | "evening" | "full";
 
 interface UnavailableDate {
@@ -136,6 +138,7 @@ export default function Home() {
 const [reservationPacks, setReservationPacks] = useState<ReservationPack[]>([]);
 const [isPackModalOpen, setIsPackModalOpen] = useState(false);
 const [selectedPackForModal, setSelectedPackForModal] = useState<PackId | undefined>(undefined);
+const currentSeason = getSeason(new Date());
 
 const [filterValue, setFilterValue] = useState<VenueFilterValue>({
     date: "",
@@ -281,7 +284,7 @@ const filteredVenues = useMemo(() => {
 
     // Filtre budget
     if (filterValue.maxBudget !== null) {
-      const venuePrice = extractPriceNumber(venue.price);
+      const venuePrice = getDisplayPriceNumber(venue, currentSeason) || extractPriceNumber(venue.price);
       if (venuePrice !== null && venuePrice > filterValue.maxBudget) return false;
     }
 
@@ -491,7 +494,10 @@ const filteredVenues = useMemo(() => {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {filteredVenues.map((venue, idx) => (
+            {filteredVenues.map((venue, idx) => {
+            const displayPrice = getDisplayPrice(venue, currentSeason);
+
+            return (
               <motion.div
                 key={venue.id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -516,9 +522,11 @@ const filteredVenues = useMemo(() => {
                 <div className="p-6">
                   <h3 className="text-2xl font-medium mb-2">{venue.name}</h3>
                   <p className="text-sm mb-1" style={{ color: colors.primary }}>Capacité: {venue.capacity}</p>
-                  <p className="text-sm mb-1" style={{ color: colors.textLight }}>Tables: {venue.tables} | Chaises: {venue.chairs}</p>
+                  <p className="text-sm mb-1" style={{ color: colors.textLight }}>Tables: {venue.tables}</p>
                   {venue.surface && <p className="text-sm mb-2" style={{ color: colors.textLight }}>Surface: {venue.surface}</p>}
-                  <p className="text-sm mb-4" style={{ color: colors.primary }}>{venue.price}</p>
+                  <p className="text-sm mb-4" style={{ color: colors.primary }}>
+                    Tarif: {getDisplayPrice(venue, currentSeason)} DT
+                  </p>
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     className="w-full py-2 rounded-full text-white text-sm"
@@ -528,7 +536,7 @@ const filteredVenues = useMemo(() => {
                   </motion.button>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
           {filteredVenues.length === 0 && isFiltering && (
             <div className="text-center py-10">

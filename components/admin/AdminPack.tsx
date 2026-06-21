@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
@@ -14,7 +15,7 @@ import {
   Sparkles,
   Edit2,
 } from "lucide-react";
-import { ReservationPack, DecorOption, JuiceOption, PackId, PACK_LABELS } from "@/types/pack";
+import { ReservationPack, DecorOption, JuiceOption, PackId, PACK_LABELS, SeasonalPrice, Season, SEASONS } from "@/types/pack";
 import { getReservationPacks, saveReservationPack } from "@/lib/pack-service";
 
 const PACK_IDS: PackId[] = ["pack1", "pack2", "pack3"];
@@ -59,7 +60,65 @@ export const AdminPacks = ({ colors }: { colors: any }) => {
   const [imagePreview, setImagePreview] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<Omit<ReservationPack, "id" | "packId">>(DEFAULT_PACK.pack1);
-
+  const SeasonalPricesEditor = ({ 
+    seasonalPrices, 
+    onChange, 
+    colors 
+  }: { 
+    seasonalPrices: SeasonalPrice[]; 
+    onChange: (prices: SeasonalPrice[]) => void;
+    colors: any;
+  }) => {
+    const updateSeasonalPrice = (season: Season, value: string) => {
+      const numValue = parseFloat(value);
+      const existing = seasonalPrices.find(sp => sp.season === season);
+      let newPrices: SeasonalPrice[];
+      
+      if (existing) {
+        newPrices = seasonalPrices.map(sp => 
+          sp.season === season 
+            ? { ...sp, price: value, priceNumber: isNaN(numValue) ? 0 : numValue }
+            : sp
+        );
+      } else {
+        newPrices = [
+          ...seasonalPrices,
+          { season, price: value, priceNumber: isNaN(numValue) ? 0 : numValue }
+        ];
+      }
+      
+      onChange(newPrices);
+    };
+    
+    return (
+      <div>
+        <label className="block text-sm font-medium mb-2" style={{ color: colors.textDark }}>
+          🏷️ Tarifs saisonniers
+        </label>
+        <p className="text-xs mb-3" style={{ color: colors.textLight }}>
+          Si aucun prix saisonnier n'est défini, le prix par défaut sera utilisé.
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {SEASONS.map(({ value, label, emoji }) => {
+            const current = seasonalPrices.find(sp => sp.season === value);
+            return (
+              <div key={value} className="flex items-center gap-2">
+                <span className="text-sm">{emoji}</span>
+                <input
+                  type="number"
+                  value={current?.price || ""}
+                  onChange={(e) => updateSeasonalPrice(value, e.target.value)}
+                  placeholder={label}
+                  className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none"
+                  style={{ borderColor: `${colors.primary}50` }}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
   useEffect(() => { fetchPacks(); }, []);
 
   const fetchPacks = async () => {
