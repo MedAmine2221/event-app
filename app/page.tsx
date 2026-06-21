@@ -14,7 +14,7 @@ import { extractPriceNumber } from "@/lib/price-utils";
 import { useState, useEffect, useMemo } from "react";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ReservationPack, PackId } from "@/types/pack";
+import { ReservationPack, PackId, getSeasonLabel } from "@/types/pack";
 import { getReservationPacks } from "@/lib/pack-service";
 import { PackReservationModal } from "@/components/PackReservationModal";
 import { getSeason, getDisplayPrice, getDisplayPriceNumber } from "@/lib/seasonal-price-utils";
@@ -827,22 +827,30 @@ const filteredVenues = useMemo(() => {
               RÉSERVATION RAPIDE
             </span>
             <h2 className="text-[clamp(32px,5vw,42px)] font-medium my-4">Nos Packs de Réservation</h2>
+            <p className="text-sm" style={{ color: colors.textLight }}>
+              Tarifs pour la saison actuelle: {getSeasonLabel(currentSeason)}
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {reservationPacks.map((pack) => (
-              <div key={pack.packId} className="bg-white rounded-2xl overflow-hidden shadow-lg p-6">
-                <h3 className="text-xl font-semibold mb-2">{pack.name}</h3>
-                <p className="text-sm mb-3" style={{ color: colors.textLight }}>{pack.description}</p>
-                <p className="text-sm font-semibold mb-4" style={{ color: colors.primary }}>{pack.price}</p>
-                <button
-                  onClick={() => { setSelectedPackForModal(pack.packId); setIsPackModalOpen(true); }}
-                  className="w-full py-2.5 rounded-full text-white text-sm font-medium"
-                  style={{ background: colors.primary }}
-                >
-                  Réserver ce pack
-                </button>
-              </div>
-            ))}
+            {reservationPacks.map((pack) => {
+              const displayPrice = getDisplayPrice(pack, currentSeason);
+              return (
+                <div key={pack.packId} className="bg-white rounded-2xl overflow-hidden shadow-lg p-6">
+                  <h3 className="text-xl font-semibold mb-2">{pack.name}</h3>
+                  <p className="text-sm mb-3" style={{ color: colors.textLight }}>{pack.description}</p>
+                  <p className="text-sm font-semibold mb-4" style={{ color: colors.primary }}>
+                    {displayPrice}
+                  </p>
+                  <button
+                    onClick={() => { setSelectedPackForModal(pack.packId); setIsPackModalOpen(true); }}
+                    className="w-full py-2.5 rounded-full text-white text-sm font-medium"
+                    style={{ background: colors.primary }}
+                  >
+                    Réserver ce pack
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
