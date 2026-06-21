@@ -12,23 +12,24 @@ import { db } from "@/lib/firebase";
 interface Pastry {
   id?: string;
   name: string;
+  specialty: string;
+  description: string;
+  price: string;
   image: string;
   contact: string;
   socialMedia: string[];
-  item: {
-    pastryName: string,
-    image: string
-  }
+  products: string[];
 }
 
 const EMPTY_FORM: Omit<Pastry, "id"> = {
-  name: "", image: "",  contact: "",
-  socialMedia: [''],
-  item: {
-    pastryName: "",
-    image: ""
-  }
-
+  name: "",
+  specialty: "",
+  description: "",
+  price: "",
+  image: "",
+  contact: "",
+  socialMedia: [""],
+  products: [""],
 };
 
 export const AdminPastry = ({ colors }: { colors: any }) => {
@@ -57,7 +58,34 @@ export const AdminPastry = ({ colors }: { colors: any }) => {
       setFetchLoading(false);
     }
   };
+const handleSocialMediaChange = (index: number, value: string) => {
+  const newSocials = [...formData.socialMedia];
+  newSocials[index] = value;
+  if (index === newSocials.length - 1 && value.trim() !== "") {
+    newSocials.push("");
+  }
+  setFormData(prev => ({ ...prev, socialMedia: newSocials }));
+};
 
+const removeSocialMedia = (index: number) => {
+  const newSocials = formData.socialMedia.filter((_, i) => i !== index);
+  if (newSocials.length === 0) newSocials.push("");
+  setFormData(prev => ({ ...prev, socialMedia: newSocials }));
+};
+const handleProductChange = (index: number, value: string) => {
+  const newProducts = [...formData.products];
+  newProducts[index] = value;
+  if (index === newProducts.length - 1 && value.trim() !== "") {
+    newProducts.push("");
+  }
+  setFormData(prev => ({ ...prev, products: newProducts }));
+};
+
+const removeProduct = (index: number) => {
+  const newProducts = formData.products.filter((_, i) => i !== index);
+  if (newProducts.length === 0) newProducts.push("");
+  setFormData(prev => ({ ...prev, products: newProducts }));
+};
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -70,37 +98,41 @@ export const AdminPastry = ({ colors }: { colors: any }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError("");
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setFormError("");
 
-    if (!formData.name) {
-      setFormError("Tous les champs sont requis");
-      return;
-    }
-    if (!formData.image) {
-      setFormError("Une image est requise");
-      return;
-    }
+  if (!formData.name) {
+    setFormError("Tous les champs sont requis");
+    return;
+  }
+  if (!formData.image) {
+    setFormError("Une image est requise");
+    return;
+  }
 
-    setSubmitLoading(true);
-    try {
-      if (editingPastry?.id) {
-        await updateDoc(doc(db, "pastries", editingPastry.id), formData);
-        setPastries(prev => prev.map(p =>
-          p.id === editingPastry.id ? { ...formData, id: editingPastry.id } : p
-        ));
-      } else {
-        const docRef = await addDoc(collection(db, "pastries"), formData);
-        setPastries(prev => [...prev, { ...formData, id: docRef.id }]);
-      }
-      closeModal();
-    } catch (error: any) {
-      setFormError(error.message || "Erreur lors de la sauvegarde");
-    } finally {
-      setSubmitLoading(false);
+  const cleanSocials = formData.socialMedia.filter((s) => s.trim() !== "");
+  const cleanProducts = formData.products.filter((p) => p.trim() !== "");
+  const dataToSave = { ...formData, socialMedia: cleanSocials, products: cleanProducts };
+
+  setSubmitLoading(true);
+  try {
+    if (editingPastry?.id) {
+      await updateDoc(doc(db, "pastries", editingPastry.id), dataToSave);
+      setPastries(prev => prev.map(p =>
+        p.id === editingPastry.id ? { ...dataToSave, id: editingPastry.id } : p
+      ));
+    } else {
+      const docRef = await addDoc(collection(db, "pastries"), dataToSave);
+      setPastries(prev => [...prev, { ...dataToSave, id: docRef.id }]);
     }
-  };
+    closeModal();
+  } catch (error: any) {
+    setFormError(error.message || "Erreur lors de la sauvegarde");
+  } finally {
+    setSubmitLoading(false);
+  }
+};
 
   const handleDelete = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cette pâtisserie ?")) return;
@@ -112,13 +144,22 @@ export const AdminPastry = ({ colors }: { colors: any }) => {
     }
   };
 
-  const openEditModal = (pastry: Pastry) => {
-    setEditingPastry(pastry);
-    setFormData({ name: pastry.name, specialty: pastry.specialty, price: pastry.price, image: pastry.image, description: pastry.description });
-    setImagePreview(pastry.image);
-    setFormError("");
-    setIsModalOpen(true);
-  };
+const openEditModal = (pastry: Pastry) => {
+  setEditingPastry(pastry);
+  setFormData({
+    name: pastry.name,
+    specialty: pastry.specialty || "",
+    description: pastry.description || "",
+    price: pastry.price || "",
+    image: pastry.image,
+    contact: pastry.contact || "",
+    socialMedia: pastry.socialMedia && pastry.socialMedia.length > 0 ? [...pastry.socialMedia, ""] : [""],
+    products: pastry.products && pastry.products.length > 0 ? [...pastry.products, ""] : [""],
+  });
+  setImagePreview(pastry.image);
+  setFormError("");
+  setIsModalOpen(true);
+};
 
   const openAddModal = () => {
     setEditingPastry(null);
@@ -225,6 +266,45 @@ export const AdminPastry = ({ colors }: { colors: any }) => {
                   </button>
                 </div>
               </div>
+              {pastry.products && pastry.products.length > 0 && (
+  <div className="flex flex-wrap gap-1 mb-2">
+    {pastry.products.slice(0, 4).map((product, i) => (
+      <span
+        key={i}
+        className="text-[10px] px-2 py-0.5 rounded-full"
+        style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+      >
+        {product}
+      </span>
+    ))}
+    {pastry.products.length > 4 && (
+      <span className="text-[10px] px-2 py-0.5" style={{ color: colors.textLight }}>
+        +{pastry.products.length - 4} autres
+      </span>
+    )}
+  </div>
+)}
+              {pastry.contact && (
+  <p className="text-xs mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
+    📞 {pastry.contact}
+  </p>
+)}
+{pastry.socialMedia && pastry.socialMedia.length > 0 && (
+  <div className="flex flex-wrap gap-1 mb-3">
+    {pastry.socialMedia.map((link, i) => (
+      <a
+        key={i}
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[10px] px-2 py-0.5 rounded-full underline"
+        style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+      >
+        Lien {i + 1}
+      </a>
+    ))}
+  </div>
+)}
             </motion.div>
           ))}
         </div>
@@ -304,6 +384,130 @@ export const AdminPastry = ({ colors }: { colors: any }) => {
                 </div>
               </div>
 
+{/* Spécialité */}
+<div>
+  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+    Spécialité
+  </label>
+  <input
+    type="text"
+    value={formData.specialty}
+    onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
+    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+    style={{ borderColor: `${colors.primary}50` }}
+    placeholder="Ex: Pâtisserie Tunisienne Premium"
+  />
+</div>
+
+{/* Description */}
+<div>
+  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+    Description
+  </label>
+  <textarea
+    value={formData.description}
+    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+    rows={2}
+    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+    style={{ borderColor: `${colors.primary}50` }}
+    placeholder="Description de la pâtisserie..."
+  />
+</div>
+
+{/* Prix */}
+<div>
+  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+    Prix
+  </label>
+  <input
+    type="text"
+    value={formData.price}
+    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+    style={{ borderColor: `${colors.primary}50` }}
+    placeholder="Ex: 35 - 80 TND/kg"
+  />
+</div>
+{/* Produits vendus */}
+<div>
+  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+    Produits vendus
+  </label>
+  <div className="space-y-2">
+    {formData.products.map((product, index) => (
+      <div key={index} className="flex gap-2 items-center">
+        <Cake size={16} style={{ color: colors.primary }} className="shrink-0" />
+        <input
+          type="text"
+          value={product}
+          onChange={(e) => handleProductChange(index, e.target.value)}
+          className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
+          style={{ borderColor: `${colors.primary}50` }}
+          placeholder="Ex: Baklawa, Kaak Warka, Makroudh..."
+        />
+        {formData.products.length > 1 && (
+          <button
+            type="button"
+            onClick={() => removeProduct(index)}
+            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            <X size={14} className="text-red-400" />
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+  <p className="text-xs mt-1" style={{ color: colors.textLight }}>
+    Listez les types de pâtisseries/produits proposés par cette maison
+  </p>
+</div>
+{/* Contact */}
+<div>
+  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+    Numéro de contact
+  </label>
+  <input
+    type="tel"
+    value={formData.contact}
+    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+    style={{ borderColor: `${colors.primary}50` }}
+    placeholder="Ex: +216 12 345 678"
+  />
+</div>
+
+{/* Réseaux sociaux */}
+<div>
+  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+    Réseaux sociaux
+  </label>
+  <div className="space-y-2">
+    {formData.socialMedia.map((link, index) => (
+      <div key={index} className="flex gap-2 items-center">
+        <input
+          type="url"
+          value={link}
+          onChange={(e) => handleSocialMediaChange(index, e.target.value)}
+          className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
+          style={{ borderColor: `${colors.primary}50` }}
+          placeholder="Ex: https://instagram.com/votrepatisserie"
+        />
+        {formData.socialMedia.length > 1 && (
+          <button
+            type="button"
+            onClick={() => removeSocialMedia(index)}
+            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            <X size={14} className="text-red-400" />
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+  <p className="text-xs mt-1" style={{ color: colors.textLight }}>
+    Ajoutez les liens Facebook, Instagram, TikTok, etc.
+  </p>
+</div>
               {/* Erreur */}
               {formError && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">

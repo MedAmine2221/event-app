@@ -45,12 +45,14 @@ interface Venue {
 }
 
 interface Band {
-  id: string;
+  id?: string;
   name: string;
   genre: string;
-  price: string;
   image: string;
-  description: string;
+  contact: string;
+  price?: string;
+  description?: string;
+  socialMedia: string[];
 }
 
 interface Pastry {

@@ -15,9 +15,9 @@ interface Band {
   image: string;
   contact: string;
   price?: string;
-  socialMedia: string[]
+  description?: string;
+  socialMedia: string[];
 }
-
 export const AdminBands = ({ colors }: { colors: any }) => {
   const [bands, setBands] = useState<Band[]>([]);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -28,7 +28,6 @@ export const AdminBands = ({ colors }: { colors: any }) => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [, setImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [formData, setFormData] = useState<Band>({
     name: "", genre: "", image: "", contact: "", socialMedia: ['']
   });
@@ -64,38 +63,40 @@ export const AdminBands = ({ colors }: { colors: any }) => {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError("");
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setFormError("");
 
-    if (!formData.name || !formData.genre) {
-      setFormError("Tous les champs sont requis");
-      return;
-    }
-    if (!formData.image) {
-      setFormError("Une image est requise");
-      return;
-    }
+  if (!formData.name || !formData.genre) {
+    setFormError("Tous les champs sont requis");
+    return;
+  }
+  if (!formData.image) {
+    setFormError("Une image est requise");
+    return;
+  }
 
-    setSubmitLoading(true);
-    try {
-      // Plus besoin d'upload — image déjà en base64 dans formData.image
-      if (editingBand?.id) {
-        await updateDoc(doc(db, "bands", editingBand.id), formData);
-        setBands(prev => prev.map(b =>
-          b.id === editingBand.id ? { ...formData, id: editingBand.id } : b
-        ));
-      } else {
-        const docRef = await addDoc(collection(db, "bands"), formData);
-        setBands(prev => [...prev, { ...formData, id: docRef.id }]);
-      }
-      closeModal();
-    } catch (error: any) {
-      setFormError(error.message || "Erreur lors de la sauvegarde");
-    } finally {
-      setSubmitLoading(false);
+  const cleanSocials = formData.socialMedia.filter((s) => s.trim() !== "");
+  const dataToSave = { ...formData, socialMedia: cleanSocials };
+
+  setSubmitLoading(true);
+  try {
+    if (editingBand?.id) {
+      await updateDoc(doc(db, "bands", editingBand.id), dataToSave);
+      setBands(prev => prev.map(b =>
+        b.id === editingBand.id ? { ...dataToSave, id: editingBand.id } : b
+      ));
+    } else {
+      const docRef = await addDoc(collection(db, "bands"), dataToSave);
+      setBands(prev => [...prev, { ...dataToSave, id: docRef.id }]);
     }
-  };
+    closeModal();
+  } catch (error: any) {
+    setFormError(error.message || "Erreur lors de la sauvegarde");
+  } finally {
+    setSubmitLoading(false);
+  }
+};
 
   const handleDelete = async (id: string) => {
     if (!confirm("Êtes-vous sûr de vouloir supprimer cet élément ?")) return;
@@ -107,32 +108,49 @@ export const AdminBands = ({ colors }: { colors: any }) => {
     }
   };
 
-  const openEditModal = (band: Band) => {
-    setEditingBand(band);
-    setFormData(band);
-    setImagePreview(band.image);
-    setImageFile(null);
-    setIsModalOpen(true);
-  };
+const openEditModal = (band: Band) => {
+  setEditingBand(band);
+  setFormData({
+    ...band,
+    contact: band.contact || "",
+    socialMedia: band.socialMedia && band.socialMedia.length > 0 ? [...band.socialMedia, ""] : [""],
+  });
+  setImagePreview(band.image);
+  setImageFile(null);
+  setIsModalOpen(true);
+};
 
-  const openAddModal = () => {
-    setEditingBand(null);
-    setFormData({ name: "", genre: "",  image: "", description: "" });
-    setImagePreview("");
-    setImageFile(null);
-    setFormError("");
-    setIsModalOpen(true);
-  };
+const openAddModal = () => {
+  setEditingBand(null);
+  setFormData({ name: "", genre: "", image: "", contact: "", price: "", description: "", socialMedia: [""] });
+  setImagePreview("");
+  setImageFile(null);
+  setFormError("");
+  setIsModalOpen(true);
+};
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setEditingBand(null);
-    setFormData({ name: "", genre: "", price: "", image: "", description: "" });
-    setImagePreview("");
-    setImageFile(null);
-    setFormError("");
-  };
+const closeModal = () => {
+  setIsModalOpen(false);
+  setEditingBand(null);
+  setFormData({ name: "", genre: "", image: "", contact: "", price: "", description: "", socialMedia: [""] });
+  setImagePreview("");
+  setImageFile(null);
+  setFormError("");
+};
+const handleSocialMediaChange = (index: number, value: string) => {
+  const newSocials = [...formData.socialMedia];
+  newSocials[index] = value;
+  if (index === newSocials.length - 1 && value.trim() !== "") {
+    newSocials.push("");
+  }
+  setFormData({ ...formData, socialMedia: newSocials });
+};
 
+const removeSocialMedia = (index: number) => {
+  const newSocials = formData.socialMedia.filter((_, i) => i !== index);
+  if (newSocials.length === 0) newSocials.push("");
+  setFormData({ ...formData, socialMedia: newSocials });
+};
   if (fetchLoading) return <div className="text-center py-10">Chargement...</div>;
 
   return (
@@ -221,6 +239,27 @@ export const AdminBands = ({ colors }: { colors: any }) => {
                   </button>
                 </div>
               </div>
+              {band.contact && (
+  <p className="text-xs mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
+    📞 {band.contact}
+  </p>
+)}
+{band.socialMedia && band.socialMedia.length > 0 && (
+  <div className="flex flex-wrap gap-1 mb-3">
+    {band.socialMedia.map((link, i) => (
+      <a
+        key={i}
+        href={link}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[10px] px-2 py-0.5 rounded-full underline"
+        style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+      >
+        Lien {i + 1}
+      </a>
+    ))}
+  </div>
+)}
             </motion.div>
           ))}
         </div>
@@ -272,6 +311,53 @@ export const AdminBands = ({ colors }: { colors: any }) => {
                   placeholder="Ex: Musique Orientale"
                 />
               </div>
+              {/* Contact */}
+<div>
+  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+    Numéro de contact
+  </label>
+  <input
+    type="tel"
+    value={formData.contact}
+    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+    style={{ borderColor: `${colors.primary}50` }}
+    placeholder="Ex: +216 12 345 678"
+  />
+</div>
+
+{/* Réseaux sociaux */}
+<div>
+  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+    Réseaux sociaux
+  </label>
+  <div className="space-y-2">
+    {formData.socialMedia.map((link, index) => (
+      <div key={index} className="flex gap-2 items-center">
+        <input
+          type="url"
+          value={link}
+          onChange={(e) => handleSocialMediaChange(index, e.target.value)}
+          className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
+          style={{ borderColor: `${colors.primary}50` }}
+          placeholder="Ex: https://instagram.com/votregroupe"
+        />
+        {formData.socialMedia.length > 1 && (
+          <button
+            type="button"
+            onClick={() => removeSocialMedia(index)}
+            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+          >
+            <X size={14} className="text-red-400" />
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+  <p className="text-xs mt-1" style={{ color: colors.textLight }}>
+    Ajoutez les liens Facebook, Instagram, TikTok, etc.
+  </p>
+</div>
               {/* Image */}
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
