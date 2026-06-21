@@ -30,8 +30,7 @@ const adminTabs = [
   { id: "gallery", label: "Gallery", icon: GalleryHorizontal, path: "/admin/gallery" },
   { id: "bands", label: "Bands & Artistes", icon: Music, path: "/admin/bands" },
   { id: "pastries", label: "Pâtisseries", icon: Cake, path: "/admin/pastries" },
-  { id: "bookings", label: "Réservations", icon: Calendar, path: "/admin/bookings" },
-
+  { id: "pack-reservations", label: "Réservations Packs", icon: Package, path: "/admin/pack-reservations" },
   { id: "venues", label: "Salles", icon: Calendar, path: "/admin/venues" },
   { id: "packs", label: "Packages", icon: Package2, path: "/admin/packages" },
 ];

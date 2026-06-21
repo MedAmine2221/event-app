@@ -95,7 +95,16 @@ export const createPackReservation = async (
   );
 
   const docRef = await addDoc(collection(db, PACK_RESERVATIONS_COLLECTION), cleanData);
-
+  if (slotRef) {
+    await updateDoc(slotRef, {
+      isAvailable: false,
+      bookedBy: docRef.id,
+      bookedAt: Timestamp.now(),
+      clientName: data.clientName,
+      clientEmail: data.clientEmail,
+      clientPhone: data.clientPhone,
+    });
+  }
   return { id: docRef.id, ...cleanData } as PackReservation;
 
 };
