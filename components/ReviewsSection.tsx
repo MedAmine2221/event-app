@@ -27,11 +27,9 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
   // Charger les avis et s'abonner aux mises à jour en temps réel
   useEffect(() => {
     // Chargement initial
-    dispatch(fetchReviews());
     
     // Option 1: Mise à jour en temps réel (recommended)
     const unsubscribe = dispatch(subscribeToReviews());
-    
     // Nettoyer l'abonnement
     return () => {
       if (unsubscribe && typeof unsubscribe === 'function') {

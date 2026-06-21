@@ -178,11 +178,9 @@ const reviewsSlice = createSlice({
       .addCase(addReview.pending, (state) => {
         state.error = null;
       })
-      .addCase(addReview.fulfilled, (state, action) => {
-        state.reviews = [action.payload, ...state.reviews];
-        state.totalReviews = state.reviews.length;
-        state.averageRating = state.reviews.reduce((acc, review) => acc + review.rating, 0) / state.reviews.length;
-      })
+.addCase(addReview.fulfilled, (state) => {
+  state.error = null;
+})
       .addCase(addReview.rejected, (state, action) => {
         state.error = action.error.message || 'Failed to add review';
       });
