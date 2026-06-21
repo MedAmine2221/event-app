@@ -59,32 +59,28 @@ export const initializeSlotsForVenue = async (
   
   await batch.commit();
 };
-
-// Récupérer les créneaux disponibles pour une salle
-export const getAvailableSlots = async (
+export const getOrCreateSlots = async (
   venueId: string,
-  startDate: string,
-  endDate: string
+  date: string
 ): Promise<TimeSlot[]> => {
+  // Vérifier si les créneaux existent
   const q = query(
     collection(db, SLOTS_COLLECTION),
     where('venueId', '==', venueId),
-    where('date', '>=', startDate),
-    where('date', '<=', endDate),
-    where('isAvailable', '==', true),
-    orderBy('date', 'asc')
+    where('date', '==', date)
   );
   
   const snapshot = await getDocs(q);
-  const slots: TimeSlot[] = [];
+  const existingSlots: TimeSlot[] = [];
+  
   snapshot.forEach((doc) => {
     const data = doc.data();
-    slots.push({ 
-      id: doc.id, 
+    existingSlots.push({
+      id: doc.id,
       venueId: data.venueId,
       date: data.date,
       period: data.period,
-      isAvailable: data.isAvailable,
+      isAvailable: data.isAvailable ?? true,
       bookedBy: data.bookedBy,
       bookedAt: data.bookedAt?.toDate?.()?.toISOString?.() || data.bookedAt,
       clientName: data.clientName,
@@ -92,9 +88,115 @@ export const getAvailableSlots = async (
       clientPhone: data.clientPhone,
       createdAt: data.createdAt?.toDate?.()?.toISOString?.() || data.createdAt,
       updatedAt: data.updatedAt?.toDate?.()?.toISOString?.() || data.updatedAt
-    });
+    } as TimeSlot);
   });
-  return slots;
+  
+  // Si aucun créneau n'existe, les créer
+  if (existingSlots.length === 0) {
+    const periods = ['morning', 'evening'];
+    const batch = writeBatch(db);
+    const newSlots: TimeSlot[] = [];
+    const now = Timestamp.now();
+    
+    for (const period of periods) {
+      const docRef = doc(collection(db, SLOTS_COLLECTION));
+      const slotData = {
+        venueId,
+        date,
+        period,
+        isAvailable: true,
+        createdAt: now,
+        updatedAt: now
+      };
+      batch.set(docRef, slotData);
+      newSlots.push({
+        id: docRef.id,
+        ...slotData,
+        bookedBy: undefined,
+        bookedAt: undefined,
+        clientName: undefined,
+        clientEmail: undefined,
+        clientPhone: undefined
+      } as unknown as TimeSlot);
+    }
+    
+    await batch.commit();
+    return newSlots;
+  }
+  
+  return existingSlots;
+};
+
+// Récupérer les créneaux disponibles pour une salle
+export const getAvailableSlots = async (
+  venueId: string,
+  startDate: string,
+  endDate: string
+): Promise<TimeSlot[]> => {
+  try {
+    const q = query(
+      collection(db, SLOTS_COLLECTION),
+      where('venueId', '==', venueId),
+      where('date', '>=', startDate),
+      where('date', '<=', endDate),
+      where('isAvailable', '==', true),
+      orderBy('date', 'asc')
+    );
+    
+    const snapshot = await getDocs(q);
+    const slots: TimeSlot[] = [];
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      slots.push({ 
+        id: doc.id, 
+        venueId: data.venueId,
+        date: data.date,
+        period: data.period,
+        isAvailable: data.isAvailable,
+        bookedBy: data.bookedBy,
+        bookedAt: data.bookedAt?.toDate?.()?.toISOString?.() || data.bookedAt,
+        clientName: data.clientName,
+        clientEmail: data.clientEmail,
+        clientPhone: data.clientPhone,
+        createdAt: data.createdAt?.toDate?.()?.toISOString?.() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString?.() || data.updatedAt
+      });
+    });
+    return slots;
+  } catch (error: any) {
+    // Si l'index n'existe pas, récupérer sans le filtre isAvailable
+    if (error.code === 'failed-precondition' || error.message?.includes('index')) {
+      console.warn('⚠️ Index manquant, récupération sans filtre isAvailable');
+      const q = query(
+        collection(db, SLOTS_COLLECTION),
+        where('venueId', '==', venueId),
+        where('date', '>=', startDate),
+        where('date', '<=', endDate),
+        orderBy('date', 'asc')
+      );
+      const snapshot = await getDocs(q);
+      const slots: TimeSlot[] = [];
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        slots.push({ 
+          id: doc.id, 
+          venueId: data.venueId,
+          date: data.date,
+          period: data.period,
+          isAvailable: data.isAvailable ?? true,
+          bookedBy: data.bookedBy,
+          bookedAt: data.bookedAt?.toDate?.()?.toISOString?.() || data.bookedAt,
+          clientName: data.clientName,
+          clientEmail: data.clientEmail,
+          clientPhone: data.clientPhone,
+          createdAt: data.createdAt?.toDate?.()?.toISOString?.() || data.createdAt,
+          updatedAt: data.updatedAt?.toDate?.()?.toISOString?.() || data.updatedAt
+        });
+      });
+      return slots;
+    }
+    throw error;
+  }
 };
 
 // Récupérer tous les créneaux d'une salle (y compris indisponibles)

@@ -872,15 +872,18 @@ const filteredVenues = useMemo(() => {
         initialDate={filterValue.date}   
         initialPeriod={filterValue.period}
       />
-<VenueBookingModal
-  isOpen={isVenueBookingModalOpen}
-  onClose={() => {
-    setIsVenueBookingModalOpen(false);
-    setSelectedVenueForBooking(null);
-  }}
-  venue={selectedVenueForBooking as any}
-  colors={colors}
-/>
+
+      {selectedVenueForBooking && (
+        <VenueBookingModal
+          isOpen={isVenueBookingModalOpen}
+          onClose={() => {
+            setIsVenueBookingModalOpen(false);
+            setSelectedVenueForBooking(null);
+          }}
+          venue={selectedVenueForBooking}
+          colors={colors}
+        />
+      )}
       <ReviewsSection colors={colors} />
 
       <Footer colors={colors} />

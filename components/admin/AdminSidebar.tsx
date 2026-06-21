@@ -13,7 +13,6 @@ import {
   Users,
   Music,
   Cake,
-  Wine,
   Package,
   Calendar,
   LogOut,

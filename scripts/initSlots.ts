@@ -1,15 +1,14 @@
-// scripts/initSlots.js (pas .ts)
+// scripts/initAllSlots.js
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, addDoc, Timestamp, query, where, getDocs } = require('firebase/firestore');
 
-// Ta config Firebase - COPIE DEPUIS .env.local
 const firebaseConfig = {
   apiKey: "AIzaSyA6rMDDBhx3Pc4B05UBGk1CFBmeeU-_TD8",
   authDomain: "event-app-8186a.firebaseapp.com",
   projectId: "event-app-8186a",
   messagingSenderId: "767255399719",
   appId: "1:767255399719:web:d52140ba35fb12d317ed02"
-}
+};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -30,21 +29,20 @@ async function initAllSlots() {
       return;
     }
     
-    console.log(`📋 ${venues.length} salle(s) trouvée(s):`);
-    venues.forEach(v => console.log(`  - ${v.name} (${v.id})`));
+    console.log(`📋 ${venues.length} salle(s) trouvée(s)`);
     
-    // Générer les dates sur 3 mois (incluant 2027-10-21)
+    // Générer les dates sur 6 mois
     const dates = [];
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 1);
     const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 3);
+    endDate.setMonth(endDate.getMonth() + 6);
     
     for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
       dates.push(d.toISOString().split('T')[0]);
     }
     
-    console.log(`📅 ${dates.length} dates générées (du ${dates[0]} au ${dates[dates.length-1]})`);
+    console.log(`📅 ${dates.length} dates générées`);
     
     const periods = ["morning", "evening"];
     let created = 0;
@@ -52,7 +50,8 @@ async function initAllSlots() {
     let errors = 0;
     
     for (const venue of venues) {
-      console.log(`\n🏛️ Traitement de la salle: ${venue.name} (${venue.id})`);
+      console.log(`🏛️ Traitement de la salle: ${venue.name} (${venue.id})`);
+      let venueCreated = 0;
       
       for (const date of dates) {
         for (const period of periods) {
@@ -75,6 +74,7 @@ async function initAllSlots() {
                 createdAt: Timestamp.now(),
               });
               created++;
+              venueCreated++;
               if (created % 10 === 0) {
                 console.log(`  ✅ ${created} créneaux créés...`);
               }
@@ -87,7 +87,7 @@ async function initAllSlots() {
           }
         }
       }
-      console.log(`  ✅ Salle ${venue.name} terminée: ${created} créneaux créés`);
+      console.log(`  ✅ ${venue.name}: ${venueCreated} créneaux créés`);
     }
     
     console.log(`\n🎉 Terminé!`);

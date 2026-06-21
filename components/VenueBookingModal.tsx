@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // components/VenueBookingModal.tsx
 /* eslint-disable @next/next/no-img-element */
 "use client";
@@ -14,7 +15,7 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
-import { getAvailableSlots, bookSlot } from "@/lib/booking-service";
+import { getOrCreateSlots, bookSlot } from "@/lib/booking-service";
 import { TimeSlot } from "@/types/booking";
 
 interface VenueBookingModalProps {
@@ -59,22 +60,26 @@ export const VenueBookingModal = ({
   const today = new Date().toISOString().split("T")[0];
 
   // Charger les créneaux disponibles
-  useEffect(() => {
-    if (isOpen && selectedDate) {
-      const fetchSlots = async () => {
+    useEffect(() => {
+    if (isOpen && selectedDate && venue?.id) {
+        const fetchSlots = async () => {
         setLoading(true);
         try {
-          const slots = await getAvailableSlots(venue.id, selectedDate, selectedDate);
-          setAvailableSlots(slots);
-        } catch (err) {
-          console.error("Erreur chargement créneaux:", err);
+            // Utiliser getOrCreateSlots au lieu de getAvailableSlots
+            const slots = await getOrCreateSlots(venue.id, selectedDate);
+            setAvailableSlots(slots);
+        } catch (err: any) {
+            console.error("Erreur chargement créneaux:", err);
+            if (err.code === "failed-precondition") {
+            setError("⚠️ Un index Firebase est nécessaire. Veuillez contacter l'administrateur.");
+            }
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
-      };
-      fetchSlots();
+        };
+        fetchSlots();
     }
-  }, [isOpen, selectedDate, venue?.id]);
+    }, [isOpen, selectedDate, venue?.id]);
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
