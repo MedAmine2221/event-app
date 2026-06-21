@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
+import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { auth, db, googleProvider } from '@/lib/firebase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
   signInWithPopup,
+  sendPasswordResetEmail,
   User,
 } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { auth, db, googleProvider } from '@/lib/firebase';
 
 interface UserData {
   uid: string;
@@ -22,13 +24,23 @@ interface AuthState {
   user: UserData | null;
   loading: boolean;
   error: string | null;
+  resetEmailSent: boolean;
 }
 
 const initialState: AuthState = {
   user: null,
   loading: false,
   error: null,
+  resetEmailSent: false,
 };
+
+export const resetPassword = createAsyncThunk(
+  'auth/resetPassword',
+  async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+    return email;
+  }
+);
 
 export const signUp = createAsyncThunk(
   'auth/signUp',
@@ -127,6 +139,9 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
+    clearResetEmailSent: (state) => {
+      state.resetEmailSent = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -166,6 +181,19 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.error.message || 'Google sign in failed';
       })
+      .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.resetEmailSent = false;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.resetEmailSent = true;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Erreur lors de l\'envoi de l\'email';
+      })
       .addCase(setUser.fulfilled, (state, action) => {
         state.user = action.payload;
       })
@@ -176,5 +204,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { clearError } = authSlice.actions;
+export const { clearError, clearResetEmailSent } = authSlice.actions;
 export default authSlice.reducer;

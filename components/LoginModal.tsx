@@ -2,12 +2,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { X, Mail, Lock, Eye, EyeOff, User } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { signUp, signIn, clearError } from "@/store/authSlice";
 import { useRouter } from "next/navigation";
-
+import { motion, AnimatePresence } from "framer-motion";
+import { X, Mail, Lock, Eye, EyeOff, User, ArrowLeft } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { signUp, signIn, resetPassword, clearError, clearResetEmailSent } from "@/store/authSlice";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -25,6 +24,8 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [view, setView] = useState<"login" | "signup" | "forgot">("login");
+  const [resetEmail, setResetEmail] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -34,17 +35,18 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
   const [localError, setLocalError] = useState("");
 
   const dispatch = useAppDispatch();
-  const { loading, error, user } = useAppSelector((state) => state.auth);
+  const { loading, error, user, resetEmailSent } = useAppSelector((state) => state.auth);
 
-useEffect(() => {
-  if (user) {
-    onClose();
-    setFormData({ email: "", password: "", name: "", confirmPassword: "" });
-    if (user.role === "admin") {
-      router.push("/admin");
+  useEffect(() => {
+    if (user) {
+      onClose();
+      setFormData({ email: "", password: "", name: "", confirmPassword: "" });
+      setView("login");
+      if (user.role === "admin") {
+        router.push("/admin");
+      }
     }
-  }
-}, [user, onClose, router]);
+  }, [user, onClose, router]);
 
   useEffect(() => {
     if (error) {
@@ -55,6 +57,12 @@ useEffect(() => {
       }, 3000);
     }
   }, [error, dispatch]);
+
+  useEffect(() => {
+    if (view !== "forgot") {
+      dispatch(clearResetEmailSent());
+    }
+  }, [view, dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,6 +96,22 @@ useEffect(() => {
       [e.target.name]: e.target.value
     });
     setLocalError("");
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLocalError("");
+
+    if (!resetEmail) {
+      setLocalError("Veuillez entrer votre email");
+      return;
+    }
+
+    try {
+      await dispatch(resetPassword(resetEmail)).unwrap();
+    } catch {
+      // Error is handled by the Redux slice
+    }
   };
 
   return (
@@ -140,182 +164,257 @@ useEffect(() => {
                   </motion.div>
                 )}
 
-                <div className="flex gap-2 mb-6 p-1 rounded-full" style={{ background: `${colors.textLight}10` }}>
-                  <button
-                    onClick={() => setIsLogin(true)}
-                    className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${
-                      isLogin ? "text-white shadow-md" : ""
-                    }`}
-                    style={isLogin ? { background: colors.primary } : { color: colors.textLight }}
+                {view === "forgot" ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
                   >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => setIsLogin(false)}
-                    className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${
-                      !isLogin ? "text-white shadow-md" : ""
-                    }`}
-                    style={!isLogin ? { background: colors.primary } : { color: colors.textLight }}
-                  >
-                    Sign Up
-                  </button>
-                </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  {!isLogin && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="relative"
-                    >
-                      <User
-                        size={18}
-                        className="absolute left-3 top-1/2 -translate-y-1/2"
-                        style={{ color: colors.textLight }}
-                      />
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder="Full Name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
-                        style={{
-                          borderColor: `${colors.textLight}30`,
-                          background: colors.background,
-                          color: colors.textDark
-                        }}
-                        onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
-                        onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
-                        required
-                      />
-                    </motion.div>
-                  )}
-
-                  <div className="relative">
-                    <Mail
-                      size={18}
-                      className="absolute left-3 top-1/2 -translate-y-1/2"
-                      style={{ color: colors.textLight }}
-                    />
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Email Address"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
-                      style={{
-                        borderColor: `${colors.textLight}30`,
-                        background: colors.background,
-                        color: colors.textDark
-                      }}
-                      onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
-                      onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
-                      required
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <Lock
-                      size={18}
-                      className="absolute left-3 top-1/2 -translate-y-1/2"
-                      style={{ color: colors.textLight }}
-                    />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      name="password"
-                      placeholder="Password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-12 py-3 rounded-xl border focus:outline-none transition-all text-sm"
-                      style={{
-                        borderColor: `${colors.textLight}30`,
-                        background: colors.background,
-                        color: colors.textDark
-                      }}
-                      onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
-                      onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
-                      required
-                    />
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      onClick={() => { setView("login"); setLocalError(""); }}
+                      className="flex items-center gap-1.5 text-xs mb-4 hover:opacity-70 transition-opacity"
+                      style={{ color: colors.textLight }}
                     >
-                      {showPassword ? (
-                        <EyeOff size={18} style={{ color: colors.textLight }} />
-                      ) : (
-                        <Eye size={18} style={{ color: colors.textLight }} />
-                      )}
+                      <ArrowLeft size={14} />
+                      Retour à la connexion
                     </button>
-                  </div>
 
-                  {!isLogin && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="relative"
-                    >
-                      <Lock
-                        size={18}
-                        className="absolute left-3 top-1/2 -translate-y-1/2"
-                        style={{ color: colors.textLight }}
-                      />
-                      <input
-                        type={showPassword ? "text" : "password"}
-                        name="confirmPassword"
-                        placeholder="Confirm Password"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
-                        style={{
-                          borderColor: `${colors.textLight}30`,
-                          background: colors.background,
-                          color: colors.textDark
-                        }}
-                        onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
-                        onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
-                        required
-                      />
-                    </motion.div>
-                  )}
+                    {!resetEmailSent ? (
+                      <>
+                        <p className="text-sm mb-4" style={{ color: colors.textLight }}>
+                          Entrez votre adresse email, nous vous enverrons un lien pour réinitialiser votre mot de passe.
+                        </p>
+                        <form onSubmit={handleResetPassword} className="space-y-4">
+                          <div className="relative">
+                            <Mail
+                              size={18}
+                              className="absolute left-3 top-1/2 -translate-y-1/2"
+                              style={{ color: colors.textLight }}
+                            />
+                            <input
+                              type="email"
+                              placeholder="Email Address"
+                              value={resetEmail}
+                              onChange={(e) => setResetEmail(e.target.value)}
+                              className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
+                              style={{
+                                borderColor: `${colors.textLight}30`,
+                                background: colors.background,
+                                color: colors.textDark
+                              }}
+                              onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                              onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
+                              required
+                            />
+                          </div>
 
-                  {isLogin && (
-                    <div className="text-right">
-                      <button
-                        type="button"
-                        className="text-xs hover:underline transition-colors"
-                        style={{ color: colors.primary }}
+                          <motion.button
+                            type="submit"
+                            disabled={loading}
+                            whileHover={{ scale: loading ? 1 : 1.02 }}
+                            whileTap={{ scale: loading ? 1 : 0.98 }}
+                            className="w-full py-3 rounded-full text-white font-medium text-sm transition-all shadow-lg disabled:opacity-50"
+                            style={{ background: colors.primary }}
+                          >
+                            {loading ? "Envoi en cours..." : "Envoyer le lien de réinitialisation"}
+                          </motion.button>
+                        </form>
+                      </>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="text-center py-4"
                       >
-                        Forgot Password?
+                        <p className="text-sm mb-2" style={{ color: colors.textDark }}>
+                          Email envoyé !
+                        </p>
+                        <p className="text-xs mb-6" style={{ color: colors.textLight }}>
+                          Vérifiez votre boîte de réception ({resetEmail}) et suivez les instructions pour réinitialiser votre mot de passe.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => { setView("login"); setLocalError(""); }}
+                          className="text-sm font-medium hover:underline"
+                          style={{ color: colors.primary }}
+                        >
+                          Retour à la connexion
+                        </button>
+                      </motion.div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <>
+                    <div className="flex gap-2 mb-6 p-1 rounded-full" style={{ background: `${colors.textLight}10` }}>
+                      <button
+                        onClick={() => { setIsLogin(true); setView("login"); }}
+                        className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${
+                          isLogin && view === "login" ? "text-white shadow-md" : ""
+                        }`}
+                        style={isLogin && view === "login" ? { background: colors.primary } : { color: colors.textLight }}
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        onClick={() => { setIsLogin(false); setView("login"); }}
+                        className={`flex-1 py-2 rounded-full text-sm font-medium transition-all ${
+                          !isLogin && view === "login" ? "text-white shadow-md" : ""
+                        }`}
+                        style={!isLogin && view === "login" ? { background: colors.primary } : { color: colors.textLight }}
+                      >
+                        Sign Up
                       </button>
                     </div>
-                  )}
 
-                  <motion.button
-                    type="submit"
-                    disabled={loading}
-                    whileHover={{ scale: loading ? 1 : 1.02 }}
-                    whileTap={{ scale: loading ? 1 : 0.98 }}
-                    className="w-full py-3 rounded-full text-white font-medium text-sm transition-all shadow-lg disabled:opacity-50"
-                    style={{ background: colors.primary }}
-                  >
-                    {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
-                  </motion.button>
-                </form>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                      {!isLogin && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative"
+                        >
+                          <User
+                            size={18}
+                            className="absolute left-3 top-1/2 -translate-y-1/2"
+                            style={{ color: colors.textLight }}
+                          />
+                          <input
+                            type="text"
+                            name="name"
+                            placeholder="Full Name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
+                            style={{
+                              borderColor: `${colors.textLight}30`,
+                              background: colors.background,
+                              color: colors.textDark
+                            }}
+                            onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                            onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
+                            required
+                          />
+                        </motion.div>
+                      )}
 
-                {!isLogin && (
-                  <p className="text-xs text-center mt-4" style={{ color: colors.textLight }}>
-                    By signing up, you agree to our{" "}
-                    <button type="button" className="hover:underline" style={{ color: colors.primary }}>
-                      Terms of Service
-                    </button>{" "}
-                    and{" "}
-                    <button type="button" className="hover:underline" style={{ color: colors.primary }}>
-                      Privacy Policy
-                    </button>
-                  </p>
+                      <div className="relative">
+                        <Mail
+                          size={18}
+                          className="absolute left-3 top-1/2 -translate-y-1/2"
+                          style={{ color: colors.textLight }}
+                        />
+                        <input
+                          type="email"
+                          name="email"
+                          placeholder="Email Address"
+                          value={formData.email}
+                          onChange={handleChange}
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
+                          style={{
+                            borderColor: `${colors.textLight}30`,
+                            background: colors.background,
+                            color: colors.textDark
+                          }}
+                          onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                          onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
+                          required
+                        />
+                      </div>
+
+                      <div className="relative">
+                        <Lock
+                          size={18}
+                          className="absolute left-3 top-1/2 -translate-y-1/2"
+                          style={{ color: colors.textLight }}
+                        />
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          name="password"
+                          placeholder="Password"
+                          value={formData.password}
+                          onChange={handleChange}
+                          className="w-full pl-10 pr-12 py-3 rounded-xl border focus:outline-none transition-all text-sm"
+                          style={{
+                            borderColor: `${colors.textLight}30`,
+                            background: colors.background,
+                            color: colors.textDark
+                          }}
+                          onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                          onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2"
+                        >
+                          {showPassword ? (
+                            <EyeOff size={18} style={{ color: colors.textLight }} />
+                          ) : (
+                            <Eye size={18} style={{ color: colors.textLight }} />
+                          )}
+                        </button>
+                      </div>
+
+                      {!isLogin && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="relative"
+                        >
+                          <Lock
+                            size={18}
+                            className="absolute left-3 top-1/2 -translate-y-1/2"
+                            style={{ color: colors.textLight }}
+                          />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            name="confirmPassword"
+                            placeholder="Confirm Password"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
+                            style={{
+                              borderColor: `${colors.textLight}30`,
+                              background: colors.background,
+                              color: colors.textDark
+                            }}
+                            onFocus={(e) => e.currentTarget.style.borderColor = colors.primary}
+                            onBlur={(e) => e.currentTarget.style.borderColor = `${colors.textLight}30`}
+                            required
+                          />
+                        </motion.div>
+                      )}
+
+                      {isLogin && (
+                        <div className="text-right">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setResetEmail(formData.email);
+                              setLocalError("");
+                              setView("forgot");
+                            }}
+                            className="text-xs hover:underline transition-colors"
+                            style={{ color: colors.primary }}
+                          >
+                            Forgot Password?
+                          </button>
+                        </div>
+                      )}
+
+                      <motion.button
+                        type="submit"
+                        disabled={loading}
+                        whileHover={{ scale: loading ? 1 : 1.02 }}
+                        whileTap={{ scale: loading ? 1 : 0.98 }}
+                        className="w-full py-3 rounded-full text-white font-medium text-sm transition-all shadow-lg disabled:opacity-50"
+                        style={{ background: colors.primary }}
+                      >
+                        {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
+                      </motion.button>
+                    </form>
+                  </>
                 )}
               </div>
             </div>
