@@ -2,6 +2,7 @@
 // composant complet du dashboard — vue exhaustive de toutes les collections Firebase
 "use client";
 
+import { AiReviewInsights } from "./AiReviewInsights";
 import { motion } from "framer-motion";
 import {
   Users, Music, Cake, Star, Calendar,
@@ -704,6 +705,7 @@ export const AdminDashboard = () => {
           </div>
         </motion.div>
       )}
+      <AiReviewInsights colors={colors} />
 
       {/* Charts Row 1: Activité mensuelle + Statut réservations */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

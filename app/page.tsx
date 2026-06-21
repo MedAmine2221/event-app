@@ -19,6 +19,7 @@ import { getReservationPacks } from "@/lib/pack-service";
 import { PackReservationModal } from "@/components/PackReservationModal";
 import { getSeason, getDisplayPrice, getDisplayPriceNumber } from "@/lib/seasonal-price-utils";
 import { VenueBookingModal } from "@/components/VenueBookingModal";
+import { AiRecommendation } from "@/components/AiRecommendation";
 
 type UnavailablePeriod = "morning" | "evening" | "full";
 
@@ -361,6 +362,8 @@ const filteredVenues = useMemo(() => {
       {/* Hero Section - HOME */}
       <section id="home">
         <Hero colors={colors} />
+        <AiRecommendation colors={colors} />
+
       <VenueAvailabilityFilter
         colors={colors}
         value={filterValue}
