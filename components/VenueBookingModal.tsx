@@ -169,13 +169,13 @@ const resetAndClose = () => {
   const periodOptions = [
     { 
       value: "morning" as const, 
-      label: "Matinée (10h-14h)", 
+      label: "Matinée (16h-20h)", 
       Icon: Sun,
       iconSize: 24
     },
     { 
       value: "evening" as const, 
-      label: "Soirée (18h-2h)", 
+      label: "Soirée (21h-00h)", 
       Icon: Moon,
       iconSize: 24
     },

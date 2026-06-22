@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
@@ -291,14 +292,10 @@ const filteredVenues = useMemo(() => {
     const isAvailable = availableVenueIds ? availableVenueIds.has(venue.id) : true;
     if (!isAvailable) return false;
 
-    // Filtre budget
     if (filterValue.maxBudget !== null) {
       const venuePrice = getDisplayPriceNumber(venue, currentSeason) || extractPriceNumber(venue.price);
       if (venuePrice !== null && venuePrice > filterValue.maxBudget) return false;
     }
-
-    // Filtre nombre d'invités
-    // Extraction du nombre d'invités depuis la capacité
     const capacityMatch = venue.capacity.match(/(\d+)/);
     if (capacityMatch) {
       const venueCapacity = parseInt(capacityMatch[1]);

@@ -291,8 +291,8 @@ const handleSubmit = async () => {
                     <label className="text-xs font-medium mb-1 block" style={{ color: colors.textDark }}>Créneau</label>
                     <div className="grid grid-cols-2 gap-2">
                       {[
-                        { value: "morning" as const, label: "Matinée (10h-14h)", icon: Sun },
-                        { value: "evening" as const, label: "Soirée (18h-2h)", icon: Moon },
+                        { value: "morning" as const, label: "Matinée (16h-20h)", icon: Sun },
+                        { value: "evening" as const, label: "Soirée (21h-00h)", icon: Moon },
                       ].map((opt) => {
                         const Icon = opt.icon;
                         const selected = period === opt.value;

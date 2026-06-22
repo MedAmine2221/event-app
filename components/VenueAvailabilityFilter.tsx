@@ -126,7 +126,7 @@ export const VenueAvailabilityFilter = ({
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.3 }}
-              className="px-6 pb-6"
+              className="px-6 pb-6 pt-6"
             >
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Date */}
