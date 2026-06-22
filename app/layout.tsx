@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Carthage Events",
   description: "Wedding App",
   icons: {
-    icon: "/logo-dar-bouraoui.png"
+    icon: "/App-Logo.png"
   }
 };
 

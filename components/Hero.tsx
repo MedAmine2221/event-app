@@ -26,7 +26,7 @@ export const Hero = ({ colors }: HeroProps) => {
           className="text-xs tracking-[4px] uppercase"
           style={{ color: colors.primary }}
         >
-          LIFE IS AN EVENT
+          LA VIE EST UN ÉVÉNEMENT
         </motion.span>
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
@@ -34,8 +34,8 @@ export const Hero = ({ colors }: HeroProps) => {
           transition={{ delay: 0.3 }}
           className="text-[clamp(36px,6vw,56px)] font-medium my-5 leading-[1.2] tracking-[-0.5px]"
         >
-          CREATING THE <br />
-          BEST DAY EVER
+          CRÉER LA PLUS BELLE JOURNÉE <br />
+          DE TOUS LES TEMPS
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 20 }}
@@ -44,7 +44,7 @@ export const Hero = ({ colors }: HeroProps) => {
           className="text-[15px] leading-relaxed mb-8 max-w-112.5"
           style={{ color: colors.textLight }}
         >
-          Make every celebration unforgettable with Carthage Events. From weddings and engagements to corporate events and private parties, we transform your vision into a unique experience filled with elegance, creativity, and memorable moments. Let us create an event that reflects your style and exceeds your expectations.
+          {"Faites de chaque célébration un moment inoubliable avec Carthage Events. Mariages, fiançailles, événements d'entreprise, soirées privées : nous transformons votre vision en une expérience unique, empreinte d'élégance, de créativité et de souvenirs mémorables. Confiez-nous la création d'un événement à votre image, qui surpassera vos attentes."}
         </motion.p>
 
       </motion.div>
@@ -54,7 +54,7 @@ export const Hero = ({ colors }: HeroProps) => {
         transition={{ duration: 0.6, delay: 0.2 }}
         className="w-full pb-[100%] rounded-full bg-cover bg-center"
         style={{
-          backgroundImage: `url('/logo-dar-bouraoui.png')`
+          backgroundImage: `url('/App-Logo.png')`
         }}
       />
     </section>

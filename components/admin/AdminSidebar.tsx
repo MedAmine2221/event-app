@@ -106,7 +106,7 @@ export const AdminSidebar = () => {
                 Carthage Events
               </span>
               <span className="text-[10px] tracking-[1px]" style={{ color: colors.secondary }}>
-                ADMIN PANEL
+                {"Panneau d'administrateur"}
               </span>
             </div>
           )}

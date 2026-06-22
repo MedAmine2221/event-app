@@ -306,11 +306,9 @@ export const AdminPacks = ({ colors }: { colors: any }) => {
                   <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${colors.primary}15`, color: colors.primary }}>
                     🏛️ Choix de salle
                   </span>
-                  {packId === "pack1" && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${colors.primary}15`, color: colors.primary }}>
-                      🎨 {pack.decorOptions?.length || 0} décors
-                    </span>
-                  )}
+                  <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${colors.primary}15`, color: colors.primary }}>
+                    🎨 {pack.decorOptions?.length || 0} décors
+                  </span>
                   {(packId === "pack2" || packId === "pack3") && pack.includesWater && (
                     <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${colors.primary}15`, color: colors.primary }}>
                       💧 Eau
@@ -419,47 +417,44 @@ export const AdminPacks = ({ colors }: { colors: any }) => {
 
               <hr style={{ borderColor: `${colors.textLight}20` }} />
 
-              {editingPackId === "pack1" && (
-                <div>
-                  <label className="text-sm font-medium mb-2 flex items-center gap-2" style={{ color: colors.textDark }}>
-                    <Palette size={16} style={{ color: colors.primary }} />
-                    Options de décor (couleur, nappe, housse de chaise)
-                  </label>
-                  <div className="space-y-3">
-                    {(formData.decorOptions || []).map((opt) => (
-                      <div key={opt.id} className="flex flex-wrap items-center gap-2 p-3 rounded-lg border" style={{ borderColor: `${colors.textLight}20` }}>
-                        <input
-                          type="text"
-                          value={opt.label}
-                          onChange={(e) => updateDecorOption(opt.id, "label", e.target.value)}
-                          placeholder="Nom (ex: Rouge & Or)"
-                          className="flex-1 min-w-32 px-3 py-2 border rounded-lg text-sm focus:outline-none"
-                          style={{ borderColor: `${colors.primary}50` }}
-                        />
-                        <label className="flex items-center gap-1 text-xs" style={{ color: colors.textLight }}>
-                          Couleur
-                          <input type="color" value={opt.color} onChange={(e) => updateDecorOption(opt.id, "color", e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
-                        </label>
-                        <label className="flex items-center gap-1 text-xs" style={{ color: colors.textLight }}>
-                          Nappe
-                          <input type="color" value={opt.nappeColor} onChange={(e) => updateDecorOption(opt.id, "nappeColor", e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
-                        </label>
-                        <label className="flex items-center gap-1 text-xs" style={{ color: colors.textLight }}>
-                          Housse
-                          <input type="color" value={opt.chairCoverColor} onChange={(e) => updateDecorOption(opt.id, "chairCoverColor", e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
-                        </label>
-                        <button type="button" onClick={() => removeDecorOption(opt.id)} className="p-1.5 rounded hover:bg-red-50">
-                          <X size={14} className="text-red-400" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <button type="button" onClick={addDecorOption} className="mt-2 text-sm flex items-center gap-1 hover:opacity-80" style={{ color: colors.primary }}>
-                    <Plus size={14} /> Ajouter une option de décor
-                  </button>
+              <div>
+                <label className="text-sm font-medium mb-2 flex items-center gap-2" style={{ color: colors.textDark }}>
+                  <Palette size={16} style={{ color: colors.primary }} />
+                  Options de décor (couleur, nappe, housse de chaise)
+                </label>
+                <div className="space-y-3">
+                  {(formData.decorOptions || []).map((opt) => (
+                    <div key={opt.id} className="flex flex-wrap items-center gap-2 p-3 rounded-lg border" style={{ borderColor: `${colors.textLight}20` }}>
+                      <input
+                        type="text"
+                        value={opt.label}
+                        onChange={(e) => updateDecorOption(opt.id, "label", e.target.value)}
+                        placeholder="Nom (ex: Rouge & Or)"
+                        className="flex-1 min-w-32 px-3 py-2 border rounded-lg text-sm focus:outline-none"
+                        style={{ borderColor: `${colors.primary}50` }}
+                      />
+                      <label className="flex items-center gap-1 text-xs" style={{ color: colors.textLight }}>
+                        Couleur
+                        <input type="color" value={opt.color} onChange={(e) => updateDecorOption(opt.id, "color", e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
+                      </label>
+                      <label className="flex items-center gap-1 text-xs" style={{ color: colors.textLight }}>
+                        Nappe
+                        <input type="color" value={opt.nappeColor} onChange={(e) => updateDecorOption(opt.id, "nappeColor", e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
+                      </label>
+                      <label className="flex items-center gap-1 text-xs" style={{ color: colors.textLight }}>
+                        Housse
+                        <input type="color" value={opt.chairCoverColor} onChange={(e) => updateDecorOption(opt.id, "chairCoverColor", e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
+                      </label>
+                      <button type="button" onClick={() => removeDecorOption(opt.id)} className="p-1.5 rounded hover:bg-red-50">
+                        <X size={14} className="text-red-400" />
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              )}
-
+                <button type="button" onClick={addDecorOption} className="mt-2 text-sm flex items-center gap-1 hover:opacity-80" style={{ color: colors.primary }}>
+                  <Plus size={14} /> Ajouter une option de décor
+                </button>
+              </div>
               {(editingPackId === "pack2" || editingPackId === "pack3") && (
                 <div className="space-y-3">
                   <div className="flex items-center gap-6 flex-wrap">

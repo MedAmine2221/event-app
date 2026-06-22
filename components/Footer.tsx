@@ -31,7 +31,7 @@ export const Footer = ({ colors }: FooterProps) => {
             </span>
             <span className="text-xs tracking-[2px] block mb-4 text-white/40">EVENTS</span>
             <p className="text-xs text-white/50 leading-relaxed max-w-xs">
-              Creating unforgettable moments for your special day.
+              Créer des moments inoubliables pour votre journée spéciale.
             </p>
           </motion.div>
 
@@ -124,8 +124,7 @@ export const Footer = ({ colors }: FooterProps) => {
               </span>
             </p>
             <p className="text-[11px] text-white/30">
-              pour la logique des événements en Tunisie
-            </p>
+              {"Pour la logique des événements en Tunisie, les retours d'avis sur l'application, son design et la cohérence de sa logique métier."}</p>
           </div>
         </motion.div>
 
