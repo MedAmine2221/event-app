@@ -18,23 +18,22 @@ import {
   LogOut,
   Menu,
   X,
-  Home,
   Package2,
   GalleryHorizontal,
   CalendarCheck,
 } from "lucide-react";
 
 const adminTabs = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/admin" },
+  { id: "dashboard", label: "Tableau de bord", icon: LayoutDashboard, path: "/admin" },
   { id: "users", label: "Utilisateurs", icon: Users, path: "/admin/users" },
-  { id: "gallery", label: "Gallery", icon: GalleryHorizontal, path: "/admin/gallery" },
+  { id: "gallery", label: "Galeries", icon: GalleryHorizontal, path: "/admin/gallery" },
   { id: "bands", label: "Bands & Artistes", icon: Music, path: "/admin/bands" },
   { id: "pastries", label: "Pâtisseries", icon: Cake, path: "/admin/pastries" },
     { id: "bookings", label: "Réservations Salles", icon: CalendarCheck, path: "/admin/bookings" },
 
   { id: "pack-reservations", label: "Réservations Packs", icon: Package, path: "/admin/pack-reservations" },
   { id: "venues", label: "Salles", icon: Calendar, path: "/admin/venues" },
-  { id: "packs", label: "Packages", icon: Package2, path: "/admin/packages" },
+  { id: "packs", label: "Packs", icon: Package2, path: "/admin/packages" },
 ];
 
 const colors = {

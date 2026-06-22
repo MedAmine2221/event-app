@@ -14,7 +14,6 @@ interface Pastry {
   name: string;
   specialty: string;
   description: string;
-  price: string;
   image: string;
   contact: string;
   socialMedia: string[];
@@ -25,7 +24,6 @@ const EMPTY_FORM: Omit<Pastry, "id"> = {
   name: "",
   specialty: "",
   description: "",
-  price: "",
   image: "",
   contact: "",
   socialMedia: [""],
@@ -150,7 +148,6 @@ const openEditModal = (pastry: Pastry) => {
     name: pastry.name,
     specialty: pastry.specialty || "",
     description: pastry.description || "",
-    price: pastry.price || "",
     image: pastry.image,
     contact: pastry.contact || "",
     socialMedia: pastry.socialMedia && pastry.socialMedia.length > 0 ? [...pastry.socialMedia, ""] : [""],
@@ -249,7 +246,6 @@ const openEditModal = (pastry: Pastry) => {
                 <h3 className="font-semibold text-lg mb-1">{pastry.name}</h3>
                 <p className="text-xs mb-2" style={{ color: colors.textLight }}>{pastry.specialty}</p>
                 <p className="text-sm mb-3" style={{ color: colors.textLight }}>{pastry.description}</p>
-                <p className="text-sm font-semibold mb-3" style={{ color: colors.primary }}>{pastry.price}</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => openEditModal(pastry)}
@@ -384,130 +380,116 @@ const openEditModal = (pastry: Pastry) => {
                 </div>
               </div>
 
-{/* Spécialité */}
-<div>
-  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-    Spécialité
-  </label>
-  <input
-    type="text"
-    value={formData.specialty}
-    onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
-    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-    style={{ borderColor: `${colors.primary}50` }}
-    placeholder="Ex: Pâtisserie Tunisienne Premium"
-  />
-</div>
+              {/* Spécialité */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+                  Spécialité
+                </label>
+                <input
+                  type="text"
+                  value={formData.specialty}
+                  onChange={(e) => setFormData({ ...formData, specialty: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${colors.primary}50` }}
+                  placeholder="Ex: Pâtisserie Tunisienne Premium"
+                />
+              </div>
 
-{/* Description */}
-<div>
-  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-    Description
-  </label>
-  <textarea
-    value={formData.description}
-    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-    rows={2}
-    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-    style={{ borderColor: `${colors.primary}50` }}
-    placeholder="Description de la pâtisserie..."
-  />
-</div>
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+                  Description
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  rows={2}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${colors.primary}50` }}
+                  placeholder="Description de la pâtisserie..."
+                />
+              </div>
 
-{/* Prix */}
-<div>
-  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-    Prix
-  </label>
-  <input
-    type="text"
-    value={formData.price}
-    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-    style={{ borderColor: `${colors.primary}50` }}
-    placeholder="Ex: 35 - 80 TND/kg"
-  />
-</div>
-{/* Produits vendus */}
-<div>
-  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-    Produits vendus
-  </label>
-  <div className="space-y-2">
-    {formData.products.map((product, index) => (
-      <div key={index} className="flex gap-2 items-center">
-        <Cake size={16} style={{ color: colors.primary }} className="shrink-0" />
-        <input
-          type="text"
-          value={product}
-          onChange={(e) => handleProductChange(index, e.target.value)}
-          className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
-          style={{ borderColor: `${colors.primary}50` }}
-          placeholder="Ex: Baklawa, Kaak Warka, Makroudh..."
-        />
-        {formData.products.length > 1 && (
-          <button
-            type="button"
-            onClick={() => removeProduct(index)}
-            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <X size={14} className="text-red-400" />
-          </button>
-        )}
-      </div>
-    ))}
-  </div>
-  <p className="text-xs mt-1" style={{ color: colors.textLight }}>
-    Listez les types de pâtisseries/produits proposés par cette maison
-  </p>
-</div>
-{/* Contact */}
-<div>
-  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-    Numéro de contact
-  </label>
-  <input
-    type="tel"
-    value={formData.contact}
-    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-    style={{ borderColor: `${colors.primary}50` }}
-    placeholder="Ex: +216 12 345 678"
-  />
-</div>
+              {/* Produits vendus */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+                  Produits vendus
+                </label>
+                <div className="space-y-2">
+                  {formData.products.map((product, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Cake size={16} style={{ color: colors.primary }} className="shrink-0" />
+                      <input
+                        type="text"
+                        value={product}
+                        onChange={(e) => handleProductChange(index, e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
+                        style={{ borderColor: `${colors.primary}50` }}
+                        placeholder="Ex: Baklawa, Kaak Warka, Makroudh..."
+                      />
+                      {formData.products.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeProduct(index)}
+                          className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          <X size={14} className="text-red-400" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs mt-1" style={{ color: colors.textLight }}>
+                  Listez les types de pâtisseries/produits proposés par cette maison
+                </p>
+              </div>
+              {/* Contact */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+                  Numéro de contact
+                </label>
+                <input
+                  type="tel"
+                  value={formData.contact}
+                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${colors.primary}50` }}
+                  placeholder="Ex: +216 12 345 678"
+                />
+              </div>
 
-{/* Réseaux sociaux */}
-<div>
-  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-    Réseaux sociaux
-  </label>
-  <div className="space-y-2">
-    {formData.socialMedia.map((link, index) => (
-      <div key={index} className="flex gap-2 items-center">
-        <input
-          type="url"
-          value={link}
-          onChange={(e) => handleSocialMediaChange(index, e.target.value)}
-          className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
-          style={{ borderColor: `${colors.primary}50` }}
-          placeholder="Ex: https://instagram.com/votrepatisserie"
-        />
-        {formData.socialMedia.length > 1 && (
-          <button
-            type="button"
-            onClick={() => removeSocialMedia(index)}
-            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <X size={14} className="text-red-400" />
-          </button>
-        )}
-      </div>
-    ))}
-  </div>
-  <p className="text-xs mt-1" style={{ color: colors.textLight }}>
-    Ajoutez les liens Facebook, Instagram, TikTok, etc.
-  </p>
-</div>
+              {/* Réseaux sociaux */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+                  Réseaux sociaux
+                </label>
+                <div className="space-y-2">
+                  {formData.socialMedia.map((link, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <input
+                        type="url"
+                        value={link}
+                        onChange={(e) => handleSocialMediaChange(index, e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
+                        style={{ borderColor: `${colors.primary}50` }}
+                        placeholder="Ex: https://instagram.com/votrepatisserie"
+                      />
+                      {formData.socialMedia.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSocialMedia(index)}
+                          className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          <X size={14} className="text-red-400" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs mt-1" style={{ color: colors.textLight }}>
+                  Ajoutez les liens Facebook, Instagram, TikTok, etc.
+                </p>
+              </div>
               {/* Erreur */}
               {formError && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">

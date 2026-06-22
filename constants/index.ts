@@ -305,9 +305,8 @@ export const menuPacks = {
 };
 
 export const navLinks = [
-  { name: "HOME", link: "#home" },
-  { name: "About", link: "#about" },
-  { name: "Services", link: "#services" },
-  { name: "Gallery", link: "#gallery" },
-  { name: "Admin", link: "/admin" }
+  { name: "Acceuil", link: "#home" },
+  { name: "À propos", link: "#about" },
+  { name: "Sérvices", link: "#services" },
+  { name: "Galerie", link: "#gallery" },
 ];

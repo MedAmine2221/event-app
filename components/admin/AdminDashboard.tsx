@@ -502,7 +502,7 @@ export const AdminDashboard = () => {
       >
         <div>
           <h1 className="text-3xl font-medium" style={{ color: colors.textDark }}>
-            Dashboard
+            Tableau de bord
           </h1>
           <p className="text-sm mt-1" style={{ color: colors.textLight }}>
             Vue d&apos;ensemble complète de votre site Carthage Events

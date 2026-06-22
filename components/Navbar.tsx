@@ -208,7 +208,7 @@ export const Navbar = ({ colors }: NavbarProps) => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
               >
-                BOOK
+                Se Connecter
               </motion.button>
             )}
           </div>
@@ -301,7 +301,7 @@ export const Navbar = ({ colors }: NavbarProps) => {
                     className="border-none px-7 py-2.5 rounded-full text-white text-[13px] tracking-[1px] font-medium"
                     style={{ background: colors.primary }}
                   >
-                    BOOK
+                    Se Connecter
                   </button>
                 )}
               </div>

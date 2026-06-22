@@ -193,7 +193,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                             />
                             <input
                               type="email"
-                              placeholder="Email Address"
+                              placeholder="Adresse Email"
                               value={resetEmail}
                               onChange={(e) => setResetEmail(e.target.value)}
                               className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
@@ -253,7 +253,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                         }`}
                         style={isLogin && view === "login" ? { background: colors.primary } : { color: colors.textLight }}
                       >
-                        Sign In
+                        Se Connecter
                       </button>
                       <button
                         onClick={() => { setIsLogin(false); setView("login"); }}
@@ -262,7 +262,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                         }`}
                         style={!isLogin && view === "login" ? { background: colors.primary } : { color: colors.textLight }}
                       >
-                        Sign Up
+                        Créer un compte
                       </button>
                     </div>
 
@@ -281,7 +281,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                           <input
                             type="text"
                             name="name"
-                            placeholder="Full Name"
+                            placeholder="Nom et Prénom"
                             value={formData.name}
                             onChange={handleChange}
                             className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
@@ -306,7 +306,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                         <input
                           type="email"
                           name="email"
-                          placeholder="Email Address"
+                          placeholder="Adresse Email"
                           value={formData.email}
                           onChange={handleChange}
                           className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
@@ -330,7 +330,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                         <input
                           type={showPassword ? "text" : "password"}
                           name="password"
-                          placeholder="Password"
+                          placeholder="Mot de passe"
                           value={formData.password}
                           onChange={handleChange}
                           className="w-full pl-10 pr-12 py-3 rounded-xl border focus:outline-none transition-all text-sm"
@@ -370,7 +370,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                           <input
                             type={showPassword ? "text" : "password"}
                             name="confirmPassword"
-                            placeholder="Confirm Password"
+                            placeholder="Confirmez le mot de passe"
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             className="w-full pl-10 pr-4 py-3 rounded-xl border focus:outline-none transition-all text-sm"
@@ -398,7 +398,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                             className="text-xs hover:underline transition-colors"
                             style={{ color: colors.primary }}
                           >
-                            Forgot Password?
+                            Mot de passe oublié?
                           </button>
                         </div>
                       )}
@@ -411,7 +411,7 @@ export const LoginModal = ({ isOpen, onClose, colors }: LoginModalProps) => {
                         className="w-full py-3 rounded-full text-white font-medium text-sm transition-all shadow-lg disabled:opacity-50"
                         style={{ background: colors.primary }}
                       >
-                        {loading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
+                        {loading ? "S'il vous plaît, Attendez..." : (isLogin ? "Se Connecter" : "Créer un compte")}
                       </motion.button>
                     </form>
                   </>

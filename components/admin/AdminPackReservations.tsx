@@ -162,7 +162,7 @@ export const AdminPackReservations = ({ colors }: { colors: any }) => {
       {filtered.length === 0 ? (
         <div className="text-center py-12" style={{ color: colors.textLight }}>
           <Package size={48} className="mx-auto mb-4 opacity-50" />
-          <p>Aucune réservation de pack {filter !== 'all' ? `(${filter})` : ''}</p>
+          <p>Aucune réservation de pack {filter !== "all" ? `(${filter === "pending" ? "En Attente" : filter === "confirmed" ? "Confirmées":"Annulées"})` : ""}</p>
         </div>
       ) : (
         <div className="space-y-4">
