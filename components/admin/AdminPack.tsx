@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/immutability */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-
+"use client";;
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -17,34 +16,33 @@ import {
 } from "lucide-react";
 import { ReservationPack, DecorOption, JuiceOption, PackId, PACK_LABELS, SeasonalPrice, Season, SEASONS } from "@/types/pack";
 import { getReservationPacks, saveReservationPack } from "@/lib/pack-service";
-import { SeasonalPricesEditor } from "./SeasonalPricesEditor";
 
 const PACK_IDS: PackId[] = ["pack1", "pack2", "pack3"];
 
 const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
   pack1: {
-    name: "Pack Décor Sur Mesure",
+    name: "Standard",
     description: "Choisissez votre salle et personnalisez la décoration : couleur, nappes et housses de chaises.",
     price: "À partir de 2000 TND",
-    seasonalPrices: [], // ✅ AJOUTER
+    seasonalPrices: [],
     image: "",
     decorOptions: [],
   },
   pack2: {
-    name: "Pack Confort",
+    name: "Prestig",
     description: "Choisissez votre salle, profitez de l'eau, du thé et d'un service inclus.",
     price: "À partir de 1500 TND",
-    seasonalPrices: [], // ✅ AJOUTER
+    seasonalPrices: [],
     image: "",
     includesWater: true,
     includesTea: true,
     serviceDescription: "Service de table inclus",
   },
   pack3: {
-    name: "Pack Prestige",
+    name: "Premium",
     description: "Choisissez votre salle, profitez d'un serveur dédié, d'un jus au choix, de l'eau et du thé.",
     price: "À partir de 2500 TND",
-    seasonalPrices: [], // ✅ AJOUTER
+    seasonalPrices: [],
     image: "",
     includesWater: true,
     includesTea: true,
@@ -53,17 +51,6 @@ const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
     juiceOptions: [],
   },
 };
-
-export const AdminPacks = ({ colors }: { colors: any }) => {
-  const [packs, setPacks] = useState<Record<string, ReservationPack>>({});
-  const [loading, setLoading] = useState(true);
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPackId, setEditingPackId] = useState<PackId | null>(null);
-  const [formError, setFormError] = useState("");
-  const [imagePreview, setImagePreview] = useState("");
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [formData, setFormData] = useState<Omit<ReservationPack, "id" | "packId">>(DEFAULT_PACK.pack1);
   const SeasonalPricesEditor = ({ 
     seasonalPrices, 
     onChange, 
@@ -100,7 +87,7 @@ export const AdminPacks = ({ colors }: { colors: any }) => {
           🏷️ Tarifs saisonniers
         </label>
         <p className="text-xs mb-3" style={{ color: colors.textLight }}>
-          Si aucun prix saisonnier n'est défini, le prix par défaut sera utilisé.
+          {"Si aucun prix saisonnier n'est défini, le prix par défaut sera utilisé."}
         </p>
         <div className="grid grid-cols-2 gap-3">
           {SEASONS.map(({ value, label, emoji }) => {
@@ -123,6 +110,17 @@ export const AdminPacks = ({ colors }: { colors: any }) => {
       </div>
     );
   };
+export const AdminPacks = ({ colors }: { colors: any }) => {
+  const [packs, setPacks] = useState<Record<string, ReservationPack>>({});
+  const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPackId, setEditingPackId] = useState<PackId | null>(null);
+  const [formError, setFormError] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formData, setFormData] = useState<Omit<ReservationPack, "id" | "packId">>(DEFAULT_PACK.pack1);
+
   useEffect(() => { fetchPacks(); }, []);
 
   const fetchPacks = async () => {
@@ -229,7 +227,7 @@ export const AdminPacks = ({ colors }: { colors: any }) => {
     try {
       const cleanData = { 
         ...formData,
-        seasonalPrices: formData.seasonalPrices || [], // ✅ S'assurer que seasonalPrices est inclus
+        seasonalPrices: formData.seasonalPrices || [],
       };
       if (cleanData.decorOptions) {
         cleanData.decorOptions = cleanData.decorOptions.filter((o) => o.label.trim() !== "");
@@ -386,18 +384,6 @@ export const AdminPacks = ({ colors }: { colors: any }) => {
                   style={{ borderColor: `${colors.primary}50` }}
                 />
               </div>
-
-              {/* <div>
-                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>Prix *</label>
-                <input
-                  type="text"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:outline-none"
-                  style={{ borderColor: `${colors.primary}50` }}
-                  placeholder="Ex: À partir de 2000 TND"
-                />
-              </div> */}
               <SeasonalPricesEditor
                 seasonalPrices={formData.seasonalPrices || []}
                 onChange={(prices) => setFormData({ ...formData, seasonalPrices: prices })}

@@ -596,7 +596,7 @@ const handleSubmit = async () => {
               )}
               <div className="flex gap-4 mt-2 text-sm">
                 <span>Pack: <strong>{packPrice}</strong></span>
-                <span>Salle: <strong>{venuePrice}</strong></span>
+                <span>Salle: <strong>{venuePrice ? venuePrice : "--"}</strong></span>
               </div>
             </div>
             {step === "success" && (

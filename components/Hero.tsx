@@ -46,25 +46,7 @@ export const Hero = ({ colors }: HeroProps) => {
         >
           Make every celebration unforgettable with Carthage Events. From weddings and engagements to corporate events and private parties, we transform your vision into a unique experience filled with elegance, creativity, and memorable moments. Let us create an event that reflects your style and exceeds your expectations.
         </motion.p>
-        <motion.button
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="bg-transparent border px-8 py-3 rounded-full text-sm tracking-[1px] cursor-pointer transition-all"
-          style={{ borderColor: colors.primary, color: colors.primary }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = colors.primary;
-            e.currentTarget.style.color = "white";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.color = colors.primary;
-          }}
-        >
-          Explore
-        </motion.button>
+
       </motion.div>
       <motion.div
         initial={{ opacity: 0, scale: 0.8, rotate: -10 }}
