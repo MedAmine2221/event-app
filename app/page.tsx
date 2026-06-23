@@ -57,15 +57,14 @@ export default function Home() {
   const [bands, setBands] = useState<Band[]>([]);
   const [pastries, setPastries] = useState<Pastry[]>([]);
   const [selectedVenueForBooking, setSelectedVenueForBooking] = useState<Venue | null>(null);
-const [isVenueBookingModalOpen, setIsVenueBookingModalOpen] = useState(false);
+  const [isVenueBookingModalOpen, setIsVenueBookingModalOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
-const [reservationPacks, setReservationPacks] = useState<ReservationPack[]>([]);
-const [isPackModalOpen, setIsPackModalOpen] = useState(false);
-const [selectedPackForModal, setSelectedPackForModal] = useState<PackId | undefined>(undefined);
-const currentSeason = getSeason(new Date());
-const [reviewModalTarget, setReviewModalTarget] = useState<{ type: "band" | "pastry"; id: string; name: string } | null>(null);
-
-const [filterValue, setFilterValue] = useState<VenueFilterValue>({
+  const [reservationPacks, setReservationPacks] = useState<ReservationPack[]>([]);
+  const [isPackModalOpen, setIsPackModalOpen] = useState(false);
+  const [selectedPackForModal, setSelectedPackForModal] = useState<PackId | undefined>(undefined);
+  const currentSeason = getSeason(new Date());
+  const [reviewModalTarget, setReviewModalTarget] = useState<{ type: "band" | "pastry"; id: string; name: string } | null>(null);
+  const [filterValue, setFilterValue] = useState<VenueFilterValue>({
     date: "",
     period: null,
     maxBudget: null,
@@ -80,7 +79,6 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
     const fetchAllData = async () => {
       setLoading(true);
       try {
-        // Fetch venues
         const venuesSnapshot = await getDocs(collection(db, "venues"));
         const venuesData: Venue[] = [];
         venuesSnapshot.forEach((doc) => {
@@ -88,7 +86,6 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
         });
         setVenues(venuesData);
 
-        // Fetch bands
         const bandsSnapshot = await getDocs(collection(db, "bands"));
         const bandsData: Band[] = [];
         bandsSnapshot.forEach((doc) => {
@@ -96,7 +93,6 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
         });
         setBands(bandsData);
 
-        // Fetch pastries
         const pastriesSnapshot = await getDocs(collection(db, "pastries"));
         const pastriesData: Pastry[] = [];
         pastriesSnapshot.forEach((doc) => {
@@ -104,7 +100,6 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
         });
         setPastries(pastriesData);
 
-        // Fetch gallery images
         const galleryRef = collection(db, "gallery");
         const q = query(galleryRef, orderBy("order", "asc"));
         const gallerySnapshot = await getDocs(q);
@@ -124,10 +119,6 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
 
     fetchAllData();
   }, []);
-
-  // Recherche des salles disponibles pour la date/créneau choisis.
-  // Une salle est indisponible si elle a une entrée "unavailableDates" correspondant
-  // à la date sélectionnée avec period = "full", ou period = créneau choisi.
   const handleSearchAvailability = async () => {
     if (!filterValue.date || !filterValue.period) return;
 
@@ -155,45 +146,45 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
     }
   };
 
- const handleResetFilter = () => {
-  setFilterValue({ 
-    date: "", 
-    period: null, 
-    maxBudget: null,
-    minGuests: null,
-    maxGuests: null,
-  });
-  setIsFiltering(false);
-  setAvailableVenueIds(null);
-};
-
-const filteredVenues = useMemo(() => {
-  if (!isFiltering) return venues;
-
-  return venues.filter((venue: any) => {
-    const isAvailable = availableVenueIds ? availableVenueIds.has(venue.id) : true;
-    if (!isAvailable) return false;
-
-    if (filterValue.maxBudget !== null) {
-      const venuePrice = getDisplayPriceNumber(venue, currentSeason) || extractPriceNumber(venue.price);
-      if (venuePrice !== null && venuePrice > filterValue.maxBudget) return false;
-    }
-    const capacityMatch = venue.capacity.match(/(\d+)/);
-    if (capacityMatch) {
-      const venueCapacity = parseInt(capacityMatch[1]);
-      
-      if (filterValue.minGuests !== null && venueCapacity < filterValue.minGuests) {
-        return false;
+  const handleResetFilter = () => {
+    setFilterValue({ 
+      date: "", 
+      period: null, 
+      maxBudget: null,
+      minGuests: null,
+      maxGuests: null,
+    });
+    setIsFiltering(false);
+    setAvailableVenueIds(null);
+  };
+  
+  const filteredVenues = useMemo(() => {
+    if (!isFiltering) return venues;
+  
+    return venues.filter((venue: any) => {
+      const isAvailable = availableVenueIds ? availableVenueIds.has(venue.id) : true;
+      if (!isAvailable) return false;
+    
+      if (filterValue.maxBudget !== null) {
+        const venuePrice = getDisplayPriceNumber(venue, currentSeason) || extractPriceNumber(venue.price);
+        if (venuePrice !== null && venuePrice > filterValue.maxBudget) return false;
       }
-      if (filterValue.maxGuests !== null && venueCapacity > filterValue.maxGuests) {
-        return false;
+      const capacityMatch = venue.capacity.match(/(\d+)/);
+      if (capacityMatch) {
+        const venueCapacity = parseInt(capacityMatch[1]);
+        
+        if (filterValue.minGuests !== null && venueCapacity < filterValue.minGuests) {
+          return false;
+        }
+        if (filterValue.maxGuests !== null && venueCapacity > filterValue.maxGuests) {
+          return false;
+        }
       }
-    }
-
-    return true;
-  });
-}, [venues, isFiltering, availableVenueIds, filterValue.maxBudget, filterValue.minGuests, filterValue.maxGuests]);
-
+    
+      return true;
+    });
+  }, [venues, isFiltering, availableVenueIds, filterValue.maxBudget, filterValue.minGuests, filterValue.maxGuests]);
+  
   if (loading) {
     return (
       <div
