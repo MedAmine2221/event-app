@@ -46,6 +46,7 @@ interface WeddingPackage {
     maxGuests?: number;
   };
   features: {
+    options: any;
     venue: {
       included: boolean;
       types?: string[];
@@ -71,7 +72,7 @@ interface WeddingPackage {
       description: string;
       options?: string[];
     };
-    decoration?: {
+    decoration: {
       included: boolean;
       description: string;
     };
@@ -147,6 +148,7 @@ const EMPTY_FORM: Omit<WeddingPackage, "id"> = {
     weddingPlanner: { included: false, description: "" },
     animation: { included: false, description: "" },
     photography: { included: false, description: "" },
+    options: null
   },
   includedItems: [""],
   isPopular: false,
@@ -317,10 +319,10 @@ export const AdminWeddingPackages = ({ colors }: { colors: any }) => {
     Object.keys(cleanedFeatures).forEach((key) => {
       const feature = cleanedFeatures[key as keyof WeddingPackage["features"]];
       if (feature && Array.isArray(feature.options)) {
-        feature.options = feature.options.filter(o => o && o.trim() !== "");
+        feature.options = feature.options.filter((o: any) => o && o.trim() !== "");
       }
       if (feature && feature.types && Array.isArray(feature.types)) {
-        feature.types = feature.types.filter(t => t && t.trim() !== "");
+        feature.types = feature.types.filter((t: any) => t && t.trim() !== "");
       }
     });
 
