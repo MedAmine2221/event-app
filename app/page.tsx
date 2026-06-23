@@ -450,10 +450,10 @@ export default function Home() {
       )}
       <p className="text-sm font-semibold mb-2" style={{ color: colors.primary }}>{band.price}</p>
 <div className="flex items-center justify-between mb-2">
-  <LikeButton targetType="band" targetId={band.id} initialLikes={band.likes || 0} colors={colors} />
+  <LikeButton targetType="band" targetId={band?.id ?? ""} initialLikes={band.likes || 0} colors={colors} />
   <button
     type="button"
-    onClick={() => setReviewModalTarget({ type: "band", id: band.id, name: band.name })}
+    onClick={() => setReviewModalTarget({ type: "band", id: band.id ?? "", name: band.name })}
     className="text-[11px] underline"
     style={{ color: colors.primary }}
   >
