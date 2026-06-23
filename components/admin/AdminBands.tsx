@@ -7,17 +7,8 @@ import { motion } from "framer-motion";
 import { Plus, Edit2, Trash2, X, ImageIcon } from "lucide-react";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { Band } from "@/types";
 
-interface Band {
-  id?: string;
-  name: string;
-  genre: string;
-  image: string;
-  contact: string;
-  price?: string;
-  description?: string;
-  socialMedia: string[];
-}
 export const AdminBands = ({ colors }: { colors: any }) => {
   const [bands, setBands] = useState<Band[]>([]);
   const [fetchLoading, setFetchLoading] = useState(true);
@@ -29,7 +20,7 @@ export const AdminBands = ({ colors }: { colors: any }) => {
   const [, setImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<Band>({
-    name: "", genre: "", image: "", contact: "", socialMedia: ['']
+    name: "", genre: "", image: "", contact: "", socialMedia: [''], price: "", description: ""
   });
 
   useEffect(() => { fetchBands(); }, []);
@@ -76,7 +67,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     return;
   }
 
-  const cleanSocials = formData.socialMedia.filter((s) => s.trim() !== "");
+  const cleanSocials = formData.socialMedia?.filter((s) => s.trim() !== "");
   const dataToSave = { ...formData, socialMedia: cleanSocials };
 
   setSubmitLoading(true);
@@ -138,7 +129,7 @@ const closeModal = () => {
   setFormError("");
 };
 const handleSocialMediaChange = (index: number, value: string) => {
-  const newSocials = [...formData.socialMedia];
+  const newSocials = [...formData.socialMedia ?? []];
   newSocials[index] = value;
   if (index === newSocials.length - 1 && value.trim() !== "") {
     newSocials.push("");
@@ -147,8 +138,8 @@ const handleSocialMediaChange = (index: number, value: string) => {
 };
 
 const removeSocialMedia = (index: number) => {
-  const newSocials = formData.socialMedia.filter((_, i) => i !== index);
-  if (newSocials.length === 0) newSocials.push("");
+  const newSocials = formData.socialMedia?.filter((_, i) => i !== index);
+  if (newSocials?.length === 0) newSocials.push("");
   setFormData({ ...formData, socialMedia: newSocials });
 };
   if (fetchLoading) return <div className="text-center py-10">Chargement...</div>;
@@ -240,26 +231,26 @@ const removeSocialMedia = (index: number) => {
                 </div>
               </div>
               {band.contact && (
-  <p className="text-xs mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
-    📞 {band.contact}
-  </p>
-)}
-{band.socialMedia && band.socialMedia.length > 0 && (
-  <div className="flex flex-wrap gap-1 mb-3">
-    {band.socialMedia.map((link, i) => (
-      <a
-        key={i}
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[10px] px-2 py-0.5 rounded-full underline"
-        style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
-      >
-        Lien {i + 1}
-      </a>
-    ))}
-  </div>
-)}
+                <p className="text-xs mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
+                  📞 {band.contact}
+                </p>
+              )}
+              {band.socialMedia && band.socialMedia.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {band.socialMedia.map((link, i) => (
+                    <a
+                      key={i}
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] px-2 py-0.5 rounded-full underline"
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                    >
+                      Lien {i + 1}
+                    </a>
+                  ))}
+                </div>
+              )}
             </motion.div>
           ))}
         </div>
@@ -312,52 +303,52 @@ const removeSocialMedia = (index: number) => {
                 />
               </div>
               {/* Contact */}
-<div>
-  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-    Numéro de contact
-  </label>
-  <input
-    type="tel"
-    value={formData.contact}
-    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-    style={{ borderColor: `${colors.primary}50` }}
-    placeholder="Ex: +216 12 345 678"
-  />
-</div>
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+                  Numéro de contact
+                </label>
+                <input
+                  type="tel"
+                  value={formData.contact}
+                  onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
+                  style={{ borderColor: `${colors.primary}50` }}
+                  placeholder="Ex: +216 12 345 678"
+                />
+              </div>
 
-{/* Réseaux sociaux */}
-<div>
-  <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
-    Réseaux sociaux
-  </label>
-  <div className="space-y-2">
-    {formData.socialMedia.map((link, index) => (
-      <div key={index} className="flex gap-2 items-center">
-        <input
-          type="url"
-          value={link}
-          onChange={(e) => handleSocialMediaChange(index, e.target.value)}
-          className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
-          style={{ borderColor: `${colors.primary}50` }}
-          placeholder="Ex: https://instagram.com/votregroupe"
-        />
-        {formData.socialMedia.length > 1 && (
-          <button
-            type="button"
-            onClick={() => removeSocialMedia(index)}
-            className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-          >
-            <X size={14} className="text-red-400" />
-          </button>
-        )}
-      </div>
-    ))}
-  </div>
-  <p className="text-xs mt-1" style={{ color: colors.textLight }}>
-    Ajoutez les liens Facebook, Instagram, TikTok, etc.
-  </p>
-</div>
+              {/* Réseaux sociaux */}
+              <div>
+                <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
+                  Réseaux sociaux
+                </label>
+                <div className="space-y-2">
+                  {formData.socialMedia?.map((link, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <input
+                        type="url"
+                        value={link}
+                        onChange={(e) => handleSocialMediaChange(index, e.target.value)}
+                        className="flex-1 px-3 py-2 border rounded-lg focus:outline-none text-sm"
+                        style={{ borderColor: `${colors.primary}50` }}
+                        placeholder="Ex: https://instagram.com/votregroupe"
+                      />
+                      {formData.socialMedia.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeSocialMedia(index)}
+                          className="p-1.5 rounded-lg hover:bg-red-50 transition-colors"
+                        >
+                          <X size={14} className="text-red-400" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs mt-1" style={{ color: colors.textLight }}>
+                  Ajoutez les liens Facebook, Instagram, TikTok, etc.
+                </p>
+              </div>
               {/* Image */}
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>

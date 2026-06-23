@@ -1,4 +1,3 @@
-// app/admin/users/page.tsx
 "use client";
 
 import { AdminUsers } from "@/components/admin/AdminUser";

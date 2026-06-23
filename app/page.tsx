@@ -1,8 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { CheckCircle, Music, Star, Crown, Gem, Loader2, Sparkles, Heart, ImageIcon } from "lucide-react";
+import { CheckCircle, Music, Star, Loader2, Sparkles } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/Hero";
@@ -23,43 +24,7 @@ import { VenueBookingModal } from "@/components/VenueBookingModal";
 import { AiRecommendation } from "@/components/AiRecommendation";
 import { LikeButton } from "@/components/LIkeButton";
 import { ItemReviewModal } from "@/components/ItemReviewModal";
-type UnavailablePeriod = "morning" | "evening" | "full";
-
-interface UnavailableDate {
-  date: string; // YYYY-MM-DD
-  period: UnavailablePeriod;
-}
-
-// Interfaces pour les données Firebase
-interface Venue {
-  id: string;
-  name: string;
-  description: string;
-  image: string;
-  capacity: string;
-  tables: number;
-  chairs: number;
-  type: string;
-  price: string;
-  surface?: string;
-  isIndoor: boolean;
-  featured: boolean;
-  unavailableDates?: UnavailableDate[];
-}
-
-interface Band {
-  id: string;
-  name: string;
-  genre: string;
-  price: string;
-  image: string;
-  description: string;
-  contact?: string;
-  socialMedia?: string[];
-  likes?: number;
-  averageRating?: number;
-  reviewCount?: number;
-}
+import { Band, Venue } from "@/types";
 
 interface Pastry {
   id: string;
@@ -74,60 +39,6 @@ interface Pastry {
   likes?: number;
   averageRating?: number;
   reviewCount?: number;
-}
-
-interface Drink {
-  id: string;
-  name: string;
-  category: string;
-  price: string;
-  image: string;
-  description: string;
-}
-
-interface Sweet {
-  id: string;
-  name: string;
-  type: string;
-  price: string;
-  image: string;
-  description: string;
-}
-
-interface TablePackage {
-  id: string;
-  name: string;
-  price: string;
-  items: string[];
-  featured?: boolean;
-}
-
-interface WeddingPackage {
-  id: string;
-  name: string;
-  type: "normal" | "pro" | "gold" | "premium";
-  description: string;
-  price: string;
-  priceDetails?: {
-    perPerson?: string;
-    total?: string;
-    minGuests?: number;
-    maxGuests?: number;
-  };
-  features: {
-    venue: { included: boolean; description: string };
-    band: { included: boolean; description: string };
-    pastries: { included: boolean; description: string };
-    drinks: { included: boolean; description: string };
-    sweets: { included: boolean; description: string };
-    decoration?: { included: boolean; description: string };
-    weddingPlanner?: { included: boolean; description: string };
-    animation?: { included: boolean; description: string };
-    photography?: { included: boolean; description: string };
-  };
-  includedItems: string[];
-  isPopular?: boolean;
-  image?: string;
 }
 
 interface GalleryImage {
@@ -145,10 +56,6 @@ export default function Home() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [bands, setBands] = useState<Band[]>([]);
   const [pastries, setPastries] = useState<Pastry[]>([]);
-  const [drinks, setDrinks] = useState<Drink[]>([]);
-  const [sweets, setSweets] = useState<Sweet[]>([]);
-  const [tablePackages, setTablePackages] = useState<TablePackage[]>([]);
-  const [weddingPackages, setWeddingPackages] = useState<WeddingPackage[]>([]);
   const [selectedVenueForBooking, setSelectedVenueForBooking] = useState<Venue | null>(null);
 const [isVenueBookingModalOpen, setIsVenueBookingModalOpen] = useState(false);
   const [galleryImages, setGalleryImages] = useState<GalleryImage[]>([]);
@@ -167,7 +74,7 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
   });
   const [isFiltering, setIsFiltering] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
-  const [availableVenueIds, setAvailableVenueIds] = useState<Set<string> | null>(null);
+  const [availableVenueIds, setAvailableVenueIds] = useState<any>(null);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -197,38 +104,6 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
         });
         setPastries(pastriesData);
 
-        // Fetch drinks
-        const drinksSnapshot = await getDocs(collection(db, "drinks"));
-        const drinksData: Drink[] = [];
-        drinksSnapshot.forEach((doc) => {
-          drinksData.push({ id: doc.id, ...doc.data() } as Drink);
-        });
-        setDrinks(drinksData);
-
-        // Fetch sweets
-        const sweetsSnapshot = await getDocs(collection(db, "sweets"));
-        const sweetsData: Sweet[] = [];
-        sweetsSnapshot.forEach((doc) => {
-          sweetsData.push({ id: doc.id, ...doc.data() } as Sweet);
-        });
-        setSweets(sweetsData);
-
-        // Fetch table packages (formules)
-        const formulesSnapshot = await getDocs(collection(db, "formules"));
-        const formulesData: TablePackage[] = [];
-        formulesSnapshot.forEach((doc) => {
-          formulesData.push({ id: doc.id, ...doc.data() } as TablePackage);
-        });
-        setTablePackages(formulesData);
-
-        // Fetch wedding packages
-        const weddingPackagesSnapshot = await getDocs(collection(db, "weddingPackages"));
-        const weddingPackagesData: WeddingPackage[] = [];
-        weddingPackagesSnapshot.forEach((doc) => {
-          weddingPackagesData.push({ id: doc.id, ...doc.data() } as WeddingPackage);
-        });
-        setWeddingPackages(weddingPackagesData);
-
         // Fetch gallery images
         const galleryRef = collection(db, "gallery");
         const q = query(galleryRef, orderBy("order", "asc"));
@@ -238,8 +113,8 @@ const [filterValue, setFilterValue] = useState<VenueFilterValue>({
           galleryData.push({ id: doc.id, ...doc.data() } as GalleryImage);
         });
         setGalleryImages(galleryData);
-const packs = await getReservationPacks();
-setReservationPacks(packs);
+        const packs = await getReservationPacks();
+        setReservationPacks(packs);
       } catch (error) {
         console.error("Erreur lors du chargement des données:", error);
       } finally {
@@ -295,8 +170,7 @@ setReservationPacks(packs);
 const filteredVenues = useMemo(() => {
   if (!isFiltering) return venues;
 
-  return venues.filter((venue) => {
-    // Filtre de disponibilité
+  return venues.filter((venue: any) => {
     const isAvailable = availableVenueIds ? availableVenueIds.has(venue.id) : true;
     if (!isAvailable) return false;
 
@@ -320,28 +194,6 @@ const filteredVenues = useMemo(() => {
   });
 }, [venues, isFiltering, availableVenueIds, filterValue.maxBudget, filterValue.minGuests, filterValue.maxGuests]);
 
-  // Fonction pour obtenir l'icône du type de package
-  const getPackageIcon = (type: string) => {
-    switch(type) {
-      case "normal": return <Heart size={24} />;
-      case "pro": return <Star size={24} />;
-      case "gold": return <Crown size={24} />;
-      case "premium": return <Gem size={24} />;
-      default: return <Heart size={24} />;
-    }
-  };
-
-  // Fonction pour obtenir la couleur du type de package
-  const getPackageColor = (type: string) => {
-    switch(type) {
-      case "normal": return "#4CAF50";
-      case "pro": return "#2196F3";
-      case "gold": return "#FFD700";
-      case "premium": return "#9C27B0";
-      default: return colors.primary;
-    }
-  };
-
   if (loading) {
     return (
       <div
@@ -354,7 +206,6 @@ const filteredVenues = useMemo(() => {
     );
   }
 
-  // Séparer les images mises en avant et les autres
   const featuredImages = galleryImages.filter(img => img.featured);
   const regularImages = galleryImages.filter(img => !img.featured);
 
@@ -435,14 +286,14 @@ const filteredVenues = useMemo(() => {
                       viewport={{ once: true }}
                       className="relative rounded-2xl overflow-hidden group"
                     >
-                      <div className="aspect-[4/3] overflow-hidden bg-gray-100">
+                      <div className="aspect-4/3 overflow-hidden bg-gray-100">
                         <img
                           src={img.image}
                           alt={img.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       </div>
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/70 to-transparent">
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-linear-to-t from-black/70 to-transparent">
                         <p className="text-white font-medium text-sm">{img.title}</p>
                         <p className="text-white/70 text-xs">{img.category}</p>
                       </div>
@@ -509,8 +360,7 @@ const filteredVenues = useMemo(() => {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {filteredVenues.map((venue, idx) => {
-            const displayPrice = getDisplayPrice(venue, currentSeason);
+            {filteredVenues.map((venue: any, idx) => {
 
             return (
               <motion.div
@@ -544,9 +394,9 @@ const filteredVenues = useMemo(() => {
                   </p>
                   <motion.button
                     onClick={() => {
-    setSelectedVenueForBooking(venue);
-    setIsVenueBookingModalOpen(true);
-  }}
+                      setSelectedVenueForBooking(venue);
+                      setIsVenueBookingModalOpen(true);
+                    }}
                     whileHover={{ scale: 1.05 }}
                     className="w-full py-2 rounded-full text-white text-sm"
                     style={{ background: colors.primary }}
@@ -831,14 +681,14 @@ const filteredVenues = useMemo(() => {
         />
       )}
       <ReviewsSection colors={colors} />
-<ItemReviewModal
-  isOpen={!!reviewModalTarget}
-  onClose={() => setReviewModalTarget(null)}
-  targetType={reviewModalTarget?.type || "band"}
-  targetId={reviewModalTarget?.id || ""}
-  targetName={reviewModalTarget?.name || ""}
-  colors={colors}
-/>
+      <ItemReviewModal
+        isOpen={!!reviewModalTarget}
+        onClose={() => setReviewModalTarget(null)}
+        targetType={reviewModalTarget?.type || "band"}
+        targetId={reviewModalTarget?.id || ""}
+        targetName={reviewModalTarget?.name || ""}
+        colors={colors}
+      />
       <Footer colors={colors} />
     </div>
   );

@@ -7,30 +7,28 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
-    Plus,
-    Edit2,
-    Trash2,
-    X,
-    ImageIcon,
-    Crown,
-    Star,
-    Sparkles,
-    Music,
-    Cake,
-    Coffee,
-    Flower2,
-    Users,
-    MapPin,
-    Camera,
-    PartyPopper,
-    Gift,
-    Home,
-    Trees,
-    Waves,
-    Sofa,
-    Globe,
-    CheckCircle,
-    Heart,
+  Plus,
+  Edit2,
+  Trash2,
+  X,
+  ImageIcon,
+  Crown,
+  Star,
+  Sparkles,
+  Music,
+  Cake,
+  Coffee,
+  Flower2,
+  Users,
+  MapPin,
+  Camera,
+  Home,
+  Trees,
+  Waves,
+  Sofa,
+  Globe,
+  CheckCircle,
+  Heart,
 } from "lucide-react";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -396,12 +394,6 @@ export const AdminWeddingPackages = ({ colors }: { colors: any }) => {
     setImagePreview("");
     setFormError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const getTypeIcon = (type: string) => {
-    const found = PACKAGE_TYPES.find(t => t.value === type);
-    const Icon = found ? found.icon : Heart;
-    return <Icon size={20} />;
   };
 
   const getTypeColor = (type: string) => {

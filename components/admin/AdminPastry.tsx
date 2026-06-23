@@ -263,44 +263,44 @@ const openEditModal = (pastry: Pastry) => {
                 </div>
               </div>
               {pastry.products && pastry.products.length > 0 && (
-  <div className="flex flex-wrap gap-1 mb-2">
-    {pastry.products.slice(0, 4).map((product, i) => (
-      <span
-        key={i}
-        className="text-[10px] px-2 py-0.5 rounded-full"
-        style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
-      >
-        {product}
-      </span>
-    ))}
-    {pastry.products.length > 4 && (
-      <span className="text-[10px] px-2 py-0.5" style={{ color: colors.textLight }}>
-        +{pastry.products.length - 4} autres
-      </span>
-    )}
-  </div>
-)}
-              {pastry.contact && (
-  <p className="text-xs mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
-    📞 {pastry.contact}
-  </p>
-)}
-{pastry.socialMedia && pastry.socialMedia.length > 0 && (
-  <div className="flex flex-wrap gap-1 mb-3">
-    {pastry.socialMedia.map((link, i) => (
-      <a
-        key={i}
-        href={link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-[10px] px-2 py-0.5 rounded-full underline"
-        style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
-      >
-        Lien {i + 1}
-      </a>
-    ))}
-  </div>
-)}
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {pastry.products.slice(0, 4).map((product, i) => (
+                    <span
+                      key={i}
+                      className="text-[10px] px-2 py-0.5 rounded-full"
+                      style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                    >
+                      {product}
+                    </span>
+                  ))}
+                  {pastry.products.length > 4 && (
+                    <span className="text-[10px] px-2 py-0.5" style={{ color: colors.textLight }}>
+                      +{pastry.products.length - 4} autres
+                    </span>
+                  )}
+                </div>
+              )}
+            {pastry.contact && (
+              <p className="text-xs mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
+                📞 {pastry.contact}
+              </p>
+            )}
+            {pastry.socialMedia && pastry.socialMedia.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {pastry.socialMedia.map((link, i) => (
+                  <a
+                    key={i}
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] px-2 py-0.5 rounded-full underline"
+                    style={{ backgroundColor: `${colors.primary}15`, color: colors.primary }}
+                  >
+                    Lien {i + 1}
+                  </a>
+                ))}
+              </div>
+            )}
             </motion.div>
           ))}
         </div>
@@ -380,7 +380,6 @@ const openEditModal = (pastry: Pastry) => {
                 </div>
               </div>
 
-              {/* Spécialité */}
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
                   Spécialité
@@ -395,7 +394,6 @@ const openEditModal = (pastry: Pastry) => {
                 />
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
                   Description
@@ -410,7 +408,6 @@ const openEditModal = (pastry: Pastry) => {
                 />
               </div>
 
-              {/* Produits vendus */}
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
                   Produits vendus
@@ -443,7 +440,7 @@ const openEditModal = (pastry: Pastry) => {
                   Listez les types de pâtisseries/produits proposés par cette maison
                 </p>
               </div>
-              {/* Contact */}
+
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
                   Numéro de contact
@@ -458,7 +455,6 @@ const openEditModal = (pastry: Pastry) => {
                 />
               </div>
 
-              {/* Réseaux sociaux */}
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>
                   Réseaux sociaux
@@ -490,7 +486,6 @@ const openEditModal = (pastry: Pastry) => {
                   Ajoutez les liens Facebook, Instagram, TikTok, etc.
                 </p>
               </div>
-              {/* Erreur */}
               {formError && (
                 <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
                   {formError}

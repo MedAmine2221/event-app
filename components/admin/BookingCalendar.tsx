@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // components/BookingCalendar.tsx
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -19,7 +19,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { getAvailableSlots, bookSlot } from '@/lib/booking-service';
-import { TimeSlot, Booking } from '@/types/booking';
+import { TimeSlot } from '@/types/booking';
 
 interface BookingCalendarProps {
   venueId: string;
@@ -235,7 +235,7 @@ export const BookingCalendar = ({
             >
               <ChevronLeft size={20} />
             </button>
-            <span className="text-sm font-medium min-w-[120px] text-center">
+            <span className="text-sm font-medium min-w-30 text-center">
               {currentMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}
             </span>
             <button
@@ -276,7 +276,6 @@ export const BookingCalendar = ({
             {/* Grille des jours */}
             <div className="grid grid-cols-7 gap-1">
               {days.map((day, index) => {
-                const dateStr = day.date?.toISOString().split('T')[0];
                 const hasSlots = day.isCurrentMonth && day.date ? hasAvailableSlots(day.date) : false;
                 const isToday = day.date?.toDateString() === new Date().toDateString();
                 const isPast = day.date && day.date < new Date(new Date().setHours(0, 0, 0, 0));

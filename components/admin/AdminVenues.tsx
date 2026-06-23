@@ -1,10 +1,8 @@
 /* eslint-disable react-hooks/immutability */
 /* eslint-disable react-hooks/set-state-in-effect */
-// components/admin/AdminVenues.tsx
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
-
+"use client";;
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import {
@@ -31,32 +29,9 @@ import {
 } from "lucide-react";
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { VenueSeasonalPrice } from "@/types/pack";
 import { SeasonalPricesEditor } from "./SeasonalPricesEditor";
+import { UnavailableDate, UnavailablePeriod, Venue } from "@/types";
 
-type UnavailablePeriod = "morning" | "evening" | "full";
-
-interface UnavailableDate {
-  date: string; // YYYY-MM-DD
-  period: UnavailablePeriod;
-}
-
-interface Venue {
-  id?: string;
-  name: string;
-  description: string;
-  image: string;
-  capacity: string;
-  tables: number;
-  chairs: number;
-  type: "salle_fete" | "salle_planaire" | "espace_vert" | "espace_mer" | "jardin" | "terrasse";
-  surface?: string;
-  isIndoor: boolean;
-  featured: boolean;
-  unavailableDates: UnavailableDate[];
-  seasonalPrices: VenueSeasonalPrice[];
-
-}
 const EMPTY_FORM: Omit<Venue, "id"> = {
   name: "",
   description: "",

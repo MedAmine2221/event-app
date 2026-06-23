@@ -3,7 +3,18 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Loader2, MapPin, Music, Heart, X, AlertCircle, Cake, Wine, Utensils, Package } from "lucide-react";
+import {
+  Sparkles,
+  Loader2,
+  MapPin,
+  Heart,
+  X,
+  AlertCircle,
+  Cake,
+  Wine,
+  Utensils,
+  Package,
+} from "lucide-react";
 
 interface AiRecommendationProps {
   colors: {
@@ -224,20 +235,18 @@ export const AiRecommendation = ({ colors }: AiRecommendationProps) => {
                           </div>
                         </div>
                       )}
-
-{result.bands.map((b) => (
-  <div key={b.id} className="p-3 rounded-lg border" style={{ borderColor: `${colors.textLight}20` }}>
-    <p className="font-medium text-sm" style={{ color: colors.textDark }}>{b.name}</p>
-    <p className="text-xs" style={{ color: colors.textLight }}>{b.genre} · {b.price}</p>
-    {(b.likes > 0 || b.reviewCount > 0) && (
-      <p className="text-[11px] mt-1 flex items-center gap-3" style={{ color: colors.primary }}>
-        {b.likes > 0 && <span>❤️ {b.likes}</span>}
-        {b.reviewCount > 0 && <span>⭐ {b.averageRating?.toFixed(1)} ({b.reviewCount} avis)</span>}
-      </p>
-    )}
-  </div>
-))}
-
+                      {result.bands.map((b) => (
+                        <div key={b.id} className="p-3 rounded-lg border" style={{ borderColor: `${colors.textLight}20` }}>
+                          <p className="font-medium text-sm" style={{ color: colors.textDark }}>{b.name}</p>
+                          <p className="text-xs" style={{ color: colors.textLight }}>{b.genre} · {b.price}</p>
+                          {(b.likes > 0 || b.reviewCount > 0) && (
+                            <p className="text-[11px] mt-1 flex items-center gap-3" style={{ color: colors.primary }}>
+                              {b.likes > 0 && <span>❤️ {b.likes}</span>}
+                              {b.reviewCount > 0 && <span>⭐ {b.averageRating?.toFixed(1)} ({b.reviewCount} avis)</span>}
+                            </p>
+                          )}
+                        </div>
+                      ))}
                       {result.packages.length > 0 && (
                         <div>
                           <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5" style={{ color: colors.textDark }}>
@@ -253,27 +262,27 @@ export const AiRecommendation = ({ colors }: AiRecommendationProps) => {
                           </div>
                         </div>
                       )}
-{result.pastries.length > 0 && (
-  <div>
-    <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5" style={{ color: colors.textDark }}>
-      <Cake size={16} style={{ color: colors.primary }} /> Pâtisseries recommandées
-    </h3>
-    <div className="space-y-2">
-      {result.pastries.map((p: any) => (
-        <div key={p.id} className="p-3 rounded-lg border" style={{ borderColor: `${colors.textLight}20` }}>
-          <p className="font-medium text-sm" style={{ color: colors.textDark }}>{p.name}</p>
-          <p className="text-xs" style={{ color: colors.textLight }}>{p.specialty} · {p.price}</p>
-          {p.products && p.products.length > 0 && (
-            <p className="text-xs mt-1" style={{ color: colors.textLight }}>
-              {p.products.slice(0, 3).join(", ")}
-            </p>
-          )}
-          {(p.likes > 0 || p.reviewCount > 0) && (
-  <p className="text-[11px] mt-1 flex items-center gap-3" style={{ color: colors.primary }}>
-    {p.likes > 0 && <span>❤️ {p.likes}</span>}
-    {p.reviewCount > 0 && <span>⭐ {p.averageRating?.toFixed(1)} ({p.reviewCount} avis)</span>}
-  </p>
-)}
+                      {result.pastries.length > 0 && (
+                        <div>
+                          <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5" style={{ color: colors.textDark }}>
+                            <Cake size={16} style={{ color: colors.primary }} /> Pâtisseries recommandées
+                          </h3>
+                          <div className="space-y-2">
+                            {result.pastries.map((p: any) => (
+                              <div key={p.id} className="p-3 rounded-lg border" style={{ borderColor: `${colors.textLight}20` }}>
+                                <p className="font-medium text-sm" style={{ color: colors.textDark }}>{p.name}</p>
+                                <p className="text-xs" style={{ color: colors.textLight }}>{p.specialty} · {p.price}</p>
+                                {p.products && p.products.length > 0 && (
+                                  <p className="text-xs mt-1" style={{ color: colors.textLight }}>
+                                    {p.products.slice(0, 3).join(", ")}
+                                  </p>
+                                )}
+                                {(p.likes > 0 || p.reviewCount > 0) && (
+                        <p className="text-[11px] mt-1 flex items-center gap-3" style={{ color: colors.primary }}>
+                          {p.likes > 0 && <span>❤️ {p.likes}</span>}
+                          {p.reviewCount > 0 && <span>⭐ {p.averageRating?.toFixed(1)} ({p.reviewCount} avis)</span>}
+                        </p>
+                      )}
         </div>
       ))}
     </div>

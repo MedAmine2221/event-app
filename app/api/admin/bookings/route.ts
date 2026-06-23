@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/api/bookings/route.ts
 import { NextResponse } from 'next/server';
 import { getAdminDb } from '@/lib/firebase-admin';
-import { TimeSlot, Booking } from '@/types/booking';
+import { TimeSlot } from '@/types/booking';
 
 export async function POST(req: Request) {
   try {
@@ -32,9 +33,7 @@ export async function POST(req: Request) {
     }
 
     const slotDoc = slotQuery.docs[0];
-    const slotData = slotDoc.data() as TimeSlot;
 
-    // Créer la réservation
     const bookingRef = await adminDb.collection('bookings').add({
       venueId,
       date,
@@ -48,7 +47,6 @@ export async function POST(req: Request) {
       updatedAt: new Date().toISOString()
     });
 
-    // Marquer le créneau comme réservé
     await slotDoc.ref.update({
       isAvailable: false,
       bookedBy: bookingRef.id,

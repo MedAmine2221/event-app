@@ -1,11 +1,10 @@
-// app/api/init-slots/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, Timestamp, query, where, getDocs } from "firebase/firestore";
+import { DATES, PERIODS } from "@/constants";
 
 export async function GET() {
   try {
-    // Récupérer toutes les salles
     const venuesSnapshot = await getDocs(collection(db, "venues"));
     const venueIds: string[] = [];
     venuesSnapshot.forEach((doc) => venueIds.push(doc.id));
@@ -16,27 +15,6 @@ export async function GET() {
         message: "Aucune salle trouvée dans la base de données",
       });
     }
-
-    const DATES = [
-      "2026-06-20",
-      "2026-06-21",
-      "2026-06-22",
-      "2026-06-23",
-      "2026-06-24",
-      "2026-06-25",
-      "2026-06-26",
-      "2026-06-27",
-      "2026-06-28",
-      "2026-06-29",
-      "2026-06-30",
-      "2026-07-01",
-      "2026-07-02",
-      "2026-07-03",
-      "2026-07-04",
-      "2026-07-05",
-    ];
-
-    const PERIODS = ["morning", "evening"];
 
     let created = 0;
     let errors = 0;

@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // components/VenueBookingModal.tsx
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -19,17 +18,12 @@ import {
 import { getOrCreateSlots, bookSlot } from "@/lib/booking-service";
 import { TimeSlot } from "@/types/booking";
 import { useAppSelector } from "@/store/hooks";
+import { Venue } from "@/types";
 
 interface VenueBookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  venue: {
-    id: string;
-    name: string;
-    image: string;
-    capacity: string;
-    price: string;
-  };
+  venue: Venue
   colors: {
     primary: string;
     secondary: string;
@@ -62,14 +56,13 @@ export const VenueBookingModal = ({
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Charger les créneaux disponibles
-    useEffect(() => {
+  useEffect(() => {
     if (isOpen && selectedDate && venue?.id) {
         const fetchSlots = async () => {
         setLoading(true);
         try {
             // Utiliser getOrCreateSlots au lieu de getAvailableSlots
-            const slots = await getOrCreateSlots(venue.id, selectedDate);
+            const slots = await getOrCreateSlots(venue.id ?? "", selectedDate);
             setAvailableSlots(slots);
         } catch (err: any) {
             console.error("Erreur chargement créneaux:", err);
@@ -82,16 +75,16 @@ export const VenueBookingModal = ({
         };
         fetchSlots();
     }
-    }, [isOpen, selectedDate, venue?.id]);
-useEffect(() => {
-  if (isOpen && user) {
-    setFormData((prev) => ({
-      ...prev,
-      clientName: prev.clientName || user.displayName || "",
-      clientEmail: prev.clientEmail || user.email || "",
-    }));
-  }
-}, [isOpen, user]);
+  }, [isOpen, selectedDate, venue?.id]);
+  useEffect(() => {
+    if (isOpen && user) {
+      setFormData((prev) => ({
+        ...prev,
+        clientName: prev.clientName || user.displayName || "",
+        clientEmail: prev.clientEmail || user.email || "",
+      }));
+    }
+  }, [isOpen, user]);
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
     setSelectedPeriod(null);
@@ -132,7 +125,7 @@ useEffect(() => {
     setSubmitLoading(true);
     try {
       await bookSlot(slot.id, {
-        venueId: venue.id,
+        venueId: venue.id ?? "",
         venueName: venue.name,
         date: selectedDate,
         period: selectedPeriod,

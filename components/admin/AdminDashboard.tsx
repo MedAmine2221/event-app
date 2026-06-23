@@ -1,190 +1,64 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // composant complet du dashboard — vue exhaustive de toutes les collections Firebase
-"use client";
-
+"use client";;
 import { AiReviewInsights } from "./AiReviewInsights";
 import { motion } from "framer-motion";
 import {
-  Users, Music, Cake, Star, Calendar,
+  Users,
+  Music,
+  Cake,
+  Star,
+  Calendar,
   TrendingUp,
-  Activity, Eye, Heart, Clock,
-  MapPin, Utensils, Wine, Sparkles, ThumbsUp,
-  Package, Package2, CalendarCheck, CalendarClock,
-  CheckCircle2, AlertCircle, Wallet,
-  Image as ImageIcon, ListChecks
+  Activity,
+  Eye,
+  Heart,
+  Clock,
+  MapPin,
+  Utensils,
+  Wine,
+  Sparkles,
+  ThumbsUp,
+  Package,
+  Package2,
+  CalendarCheck,
+  CalendarClock,
+  CheckCircle2,
+  AlertCircle,
+  Wallet,
+  Image as ImageIcon,
 } from "lucide-react";
-import { useAppSelector } from "@/store/hooks";
 import { useEffect, useState } from "react";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { extractPriceNumber } from "@/lib/price-utils";
 import {
-  LineChart, Line, BarChart, Bar, PieChart as RePieChart, Pie,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-  Cell, Area, AreaChart
+  PieChart as RePieChart,
+  Pie,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+  Area,
+  AreaChart,
 } from "recharts";
-
-const colors = {
-  primary: "#C3937C",
-  secondary: "#EAD9C9",
-  background: "#FBF8F1",
-  textDark: "#2C2C2C",
-  textLight: "#787878",
-  chartColors: ["#C3937C", "#E8C4A8", "#A67B6A", "#D4A89B", "#B8877A", "#8B6B5A", "#9C6B4F", "#D9B08C"],
-  success: "#4CAF50",
-  warning: "#FF9800",
-  danger: "#F44336",
-  info: "#2196F3",
-};
-
-// ---------- Interfaces (légères, alignées sur les modèles existants) ----------
-interface BaseDoc {
-  id: string;
-  createdAt?: Timestamp | string;
-}
-
-interface Venue extends BaseDoc {
-  name: string;
-  capacity: string;
-  price: string;
-  featured: boolean;
-  type: string;
-  isIndoor: boolean;
-}
-
-interface Band extends BaseDoc {
-  name: string;
-  genre: string;
-  price: string;
-}
-
-interface Pastry extends BaseDoc {
-  name: string;
-  specialty: string;
-  price: string;
-}
-
-interface Drink extends BaseDoc {
-  name: string;
-  category: string;
-  price: string;
-}
-
-interface Sweet extends BaseDoc {
-  name: string;
-  type: string;
-  price: string;
-}
-
-interface GalleryImage extends BaseDoc {
-  title: string;
-  category: string;
-  featured: boolean;
-}
-
-interface Review extends BaseDoc {
-  name: string;
-  rating: number;
-  comment: string;
-  likes: number;
-}
-
-interface WeddingPackage extends BaseDoc {
-  name: string;
-  type: string;
-  price: string;
-  isPopular: boolean;
-}
-
-interface TablePackage extends BaseDoc {
-  name: string;
-  price: string;
-  featured: boolean;
-  items: string[];
-}
-
-interface ReservationPack extends BaseDoc {
-  packId: string;
-  name: string;
-  price: string;
-}
-
-interface PackReservation extends BaseDoc {
-  packId: string;
-  packName: string;
-  venueId: string;
-  venueName: string;
-  date: string;
-  period: "morning" | "evening";
-  clientName: string;
-  status: "pending" | "confirmed" | "cancelled";
-}
-
-interface Booking extends BaseDoc {
-  venueId: string;
-  date: string;
-  period: "morning" | "evening";
-  clientName: string;
-  status: "pending" | "confirmed" | "cancelled";
-}
-
-interface TimeSlot extends BaseDoc {
-  venueId: string;
-  date: string;
-  period: "morning" | "evening";
-  isAvailable: boolean;
-}
-
-interface AppUser extends BaseDoc {
-  email: string;
-  displayName: string;
-  role: string;
-}
-
-// ---------- Helpers ----------
-const toDate = (value: Timestamp | string | undefined): Date => {
-  if (!value) return new Date(0);
-  if (value instanceof Timestamp) return value.toDate();
-  const d = new Date(value);
-  return isNaN(d.getTime()) ? new Date(0) : d;
-};
-
-const statusColor = (status: string) => {
-  switch (status) {
-    case "confirmed": return colors.success;
-    case "pending": return colors.warning;
-    case "cancelled": return colors.danger;
-    default: return colors.textLight;
-  }
-};
-
-const statusLabel = (status: string) => {
-  switch (status) {
-    case "confirmed": return "Confirmées";
-    case "pending": return "En attente";
-    case "cancelled": return "Annulées";
-    default: return status;
-  }
-};
-
-const formatTND = (n: number) =>
-  `${n.toLocaleString("fr-FR", { maximumFractionDigits: 0 })} TND`;
-
+import { AppUser, BandDashboard, Booking, GalleryImage, PackReservation, PastryDashboard, ReservationPack, Review, TimeSlot, VenueDashboard, WeddingPackage } from "@/types";
+import { formatTND, statusColor, statusLabel, toDate } from "@/lib";
+import { colors } from "@/constants";
 export const AdminDashboard = () => {
-  const { user } = useAppSelector((state) => state.auth);
 
   const [loading, setLoading] = useState(true);
 
   // Raw collections
-  const [venues, setVenues] = useState<Venue[]>([]);
-  const [bands, setBands] = useState<Band[]>([]);
-  const [pastries, setPastries] = useState<Pastry[]>([]);
-  const [drinks, setDrinks] = useState<Drink[]>([]);
-  const [sweets, setSweets] = useState<Sweet[]>([]);
+  const [venues, setVenues] = useState<VenueDashboard[]>([]);
+  const [bands, setBands] = useState<BandDashboard[]>([]);
+  const [pastries, setPastries] = useState<PastryDashboard[]>([]);
   const [gallery, setGallery] = useState<GalleryImage[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [weddingPackages, setWeddingPackages] = useState<WeddingPackage[]>([]);
-  const [tablePackages, setTablePackages] = useState<TablePackage[]>([]);
   const [reservationPacks, setReservationPacks] = useState<ReservationPack[]>([]);
   const [packReservations, setPackReservations] = useState<PackReservation[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -209,9 +83,9 @@ export const AdminDashboard = () => {
       setLoading(true);
       try {
         const [
-          venuesSnap, bandsSnap, pastriesSnap, drinksSnap,
-          sweetsSnap, gallerySnap, ratingsSnap, packagesSnap,
-          formulesSnap, reservationPacksSnap, packReservationsSnap,
+          venuesSnap, bandsSnap, pastriesSnap,
+          gallerySnap, ratingsSnap, packagesSnap,
+          reservationPacksSnap, packReservationsSnap,
           bookingsSnap, timeSlotsSnap, usersSnap,
         ] = await Promise.all([
           getDocs(collection(db, "venues")),
@@ -220,7 +94,7 @@ export const AdminDashboard = () => {
           getDocs(collection(db, "drinks")),
           getDocs(collection(db, "sweets")),
           getDocs(collection(db, "gallery")),
-          getDocs(collection(db, "ratings")), // ← corrigé : les avis sont stockés sous "ratings"
+          getDocs(collection(db, "ratings")),
           getDocs(collection(db, "weddingPackages")),
           getDocs(collection(db, "formules")),
           getDocs(collection(db, "reservationPacks")),
@@ -230,15 +104,12 @@ export const AdminDashboard = () => {
           getDocs(collection(db, "users")),
         ]);
 
-        const venuesData = venuesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Venue));
-        const bandsData = bandsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Band));
-        const pastriesData = pastriesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Pastry));
-        const drinksData = drinksSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Drink));
-        const sweetsData = sweetsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Sweet));
+        const venuesData = venuesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as VenueDashboard));
+        const bandsData = bandsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as BandDashboard));
+        const pastriesData = pastriesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as PastryDashboard));
         const galleryData = gallerySnap.docs.map((d) => ({ id: d.id, ...d.data() } as GalleryImage));
         const reviewsData = ratingsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Review));
         const packagesData = packagesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as WeddingPackage));
-        const formulesData = formulesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as TablePackage));
         const reservationPacksData = reservationPacksSnap.docs.map((d) => ({ id: d.id, ...d.data() } as ReservationPack));
         const packReservationsData = packReservationsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as PackReservation));
         const bookingsData = bookingsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Booking));
@@ -248,12 +119,9 @@ export const AdminDashboard = () => {
         setVenues(venuesData);
         setBands(bandsData);
         setPastries(pastriesData);
-        setDrinks(drinksData);
-        setSweets(sweetsData);
         setGallery(galleryData);
         setReviews(reviewsData);
         setWeddingPackages(packagesData);
-        setTablePackages(formulesData);
         setReservationPacks(reservationPacksData);
         setPackReservations(packReservationsData);
         setBookings(bookingsData);
@@ -346,8 +214,6 @@ export const AdminDashboard = () => {
           { name: "Salles", value: venuesData.length },
           { name: "Bands", value: bandsData.length },
           { name: "Pâtisseries", value: pastriesData.length },
-          { name: "Boissons", value: drinksData.length },
-          { name: "Douceurs", value: sweetsData.length },
           { name: "Formules", value: packagesData.length },
           { name: "Galerie", value: galleryData.length },
           { name: "Réservations", value: packReservationsData.length + bookingsData.length },
@@ -443,8 +309,8 @@ export const AdminDashboard = () => {
   const estimatedRevenue = packRevenue + bookingRevenue;
 
   const totalItems =
-    venues.length + bands.length + pastries.length + drinks.length + sweets.length +
-    reviews.length + gallery.length + weddingPackages.length + tablePackages.length +
+    venues.length + bands.length + pastries.length +
+    reviews.length + gallery.length + weddingPackages.length +
     reservationPacks.length + packReservations.length + bookings.length + users.length;
 
   const occupiedSlots = timeSlots.filter((s) => !s.isAvailable).length;
@@ -460,8 +326,6 @@ export const AdminDashboard = () => {
     { label: "Salles", value: venues.length, icon: Calendar, sub: `${featuredVenues} en vedette`, color: colors.primary },
     { label: "Bands", value: bands.length, icon: Music, sub: `${bands.length} artistes`, color: colors.success },
     { label: "Pâtisseries", value: pastries.length, icon: Cake, sub: "Douceurs tunisiennes", color: colors.warning },
-    { label: "Boissons", value: drinks.length, icon: Wine, sub: `${drinks.length} options`, color: colors.info },
-    { label: "Douceurs", value: sweets.length, icon: Utensils, sub: `${sweets.length} fruits secs`, color: "#9C27B0" },
     { label: "Avis", value: reviews.length, icon: Star, sub: `${reviewStats.totalLikes} ❤️ reçus`, color: "#FFC107" },
     { label: "Galerie", value: gallery.length, icon: Eye, sub: `${gallery.length} photos`, color: "#E91E63" },
     { label: "Formules Mariage", value: weddingPackages.length, icon: Heart, sub: `${popularPackages} populaires`, color: colors.primary },
@@ -469,7 +333,6 @@ export const AdminDashboard = () => {
 
   const secondaryCards = [
     { label: "Utilisateurs", value: users.length, icon: Users, sub: `${adminCount} admin${adminCount > 1 ? "s" : ""}`, color: "#3F51B5" },
-    { label: "Formules Tables", value: tablePackages.length, icon: ListChecks, sub: `${tablePackages.filter((t) => t.featured).length} en vedette`, color: "#009688" },
     { label: "Packs Réservation", value: reservationPacks.length, icon: Package2, sub: "Configurés", color: "#795548" },
     { label: "Réservations Packs", value: packReservations.length, icon: Package, sub: `${confirmedPackReservations.length} confirmées`, color: colors.info },
     { label: "Réservations Salles", value: bookings.length, icon: CalendarCheck, sub: `${confirmedBookings.length} confirmées`, color: "#9C27B0" },

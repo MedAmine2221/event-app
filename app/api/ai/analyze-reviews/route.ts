@@ -26,20 +26,20 @@ export async function GET() {
     const model = getGeminiModel();
 
     const prompt = `
-Tu es un analyste pour "Carthage Events", une agence événementielle en Tunisie.
-Analyse ces avis clients (JSON) et fournis une synthèse utile pour l'équipe admin.
+    Tu es un analyste pour "Carthage Events", une agence événementielle en Tunisie.
+    Analyse ces avis clients (JSON) et fournis une synthèse utile pour l'équipe admin.
 
-Avis (JSON): ${JSON.stringify(reviews)}
+    Avis (JSON): ${JSON.stringify(reviews)}
 
-Réponds UNIQUEMENT en JSON valide, sans markdown, avec ce format exact:
-{
-  "summary": "Résumé global en 2-3 phrases en français",
-  "sentiment": "positive" | "neutral" | "negative",
-  "positivePoints": ["point fort 1", "point fort 2"],
-  "negativePoints": ["point faible 1", "point faible 2"],
-  "alerts": ["alerte urgente si avis très négatif ou problème récurrent, sinon tableau vide"]
-}
-`;
+    Réponds UNIQUEMENT en JSON valide, sans markdown, avec ce format exact:
+    {
+      "summary": "Résumé global en 2-3 phrases en français",
+      "sentiment": "positive" | "neutral" | "negative",
+      "positivePoints": ["point fort 1", "point fort 2"],
+      "negativePoints": ["point faible 1", "point faible 2"],
+      "alerts": ["alerte urgente si avis très négatif ou problème récurrent, sinon tableau vide"]
+    }
+  `;
 
     const result = await generateContentWithRetry(model, prompt);
     const text = result.response.text();

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Star, MessageCircle, User, Calendar } from "lucide-react";
 import { ReviewModal } from "./ReviewModal";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { fetchReviews, subscribeToReviews } from "@/store/reviewsSlice";
+import { subscribeToReviews } from "@/store/reviewsSlice";
 
 interface ReviewsSectionProps {
   colors: {
@@ -24,21 +24,14 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Charger les avis et s'abonner aux mises à jour en temps réel
-  useEffect(() => {
-    // Chargement initial
-    
-    // Option 1: Mise à jour en temps réel (recommended)
+  useEffect(() => {    
     const unsubscribe = dispatch(subscribeToReviews());
-    // Nettoyer l'abonnement
     return () => {
       if (unsubscribe && typeof unsubscribe === 'function') {
         unsubscribe();
       }
     };
   }, [dispatch]);
-
-  // Affichage du loader
   if (loading && reviews.length === 0) {
     return (
       <section className="py-20 px-10" style={{ background: colors.secondary }}>
@@ -64,7 +57,6 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
             </h2>
             <div className="w-20 h-0.5 mx-auto mb-6" style={{ background: colors.primary }} />
             
-            {/* Statistiques des avis */}
             <div className="flex flex-col items-center gap-3 mb-8">
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
@@ -95,7 +87,6 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
             </motion.button>
           </div>
 
-          {/* Liste des avis */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
             {reviews.map((review, idx) => (
               <motion.div
@@ -144,8 +135,6 @@ export const ReviewsSection = ({ colors }: ReviewsSectionProps) => {
               </motion.div>
             ))}
           </div>
-
-          {/* Message si pas d'avis */}
           {reviews.length === 0 && !loading && (
             <div className="text-center py-12">
               <MessageCircle size={48} className="mx-auto mb-4" style={{ color: colors.textLight }} />

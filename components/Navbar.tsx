@@ -53,7 +53,7 @@ export const Navbar = ({ colors }: NavbarProps) => {
     const targetElement = document.getElementById(targetId);
     
     if (targetElement) {
-      const navbarHeight = 80; // Height of the navbar
+      const navbarHeight = 80;
       const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
       
       window.scrollTo({
@@ -61,7 +61,6 @@ export const Navbar = ({ colors }: NavbarProps) => {
         behavior: "smooth"
       });
       
-      // Close mobile menu if open
       if (mobileMenuOpen) {
         setMobileMenuOpen(false);
       }
@@ -85,7 +84,6 @@ export const Navbar = ({ colors }: NavbarProps) => {
             </span>
           </motion.div>
 
-          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             {navLinks.filter((navLink) => {
               if(navLink.name === "Admin" && user?.role !== "admin"){

@@ -1,6 +1,4 @@
-"use client";
-import { FiInstagram, FiLinkedin } from "react-icons/fi";
-import { FaFacebook } from "react-icons/fa";
+"use client";;
 import { motion } from "framer-motion";
 import { navLinks } from "@/constants";
 

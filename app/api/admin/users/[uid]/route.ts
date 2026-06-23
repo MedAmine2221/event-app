@@ -1,18 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/api/admin/users/[uid]/route.ts
 import { NextResponse } from "next/server";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase-admin";
 
-// PATCH — modifier le rôle (et optionnellement displayName)
-// app/api/admin/users/[uid]/route.ts
 export async function DELETE(
   _req: Request,
-  { params }: { params: Promise<{ uid: string }> }  // ← Promise ici
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
     const adminAuth = getAdminAuth();
     const adminDb = getAdminDb();
-    const { uid } = await params;  // ← await ici
+    const { uid } = await params;
 
     await adminAuth.deleteUser(uid);
     await adminDb.collection("users").doc(uid).delete();
@@ -29,12 +26,12 @@ export async function DELETE(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ uid: string }> }  // ← idem
+  { params }: { params: Promise<{ uid: string }> }
 ) {
   try {
     const adminAuth = getAdminAuth();
     const adminDb = getAdminDb();
-    const { uid } = await params;  // ← await ici
+    const { uid } = await params;
     const body = await req.json();
     const { role, displayName } = body;
 

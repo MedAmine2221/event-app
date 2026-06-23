@@ -1,20 +1,13 @@
-// app/venues/[id]/page.tsx
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { BookingCalendar } from '@/components/BookingCalendar';
+import { BookingCalendar } from '@/components/admin/BookingCalendar';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-
-const colors = {
-  primary: '#C3937C',
-  secondary: '#EAD9C9',
-  background: '#FBF8F1',
-  textDark: '#2C2C2C',
-  textLight: '#787878',
-};
-
+import { colors } from '@/constants';
 export default function VenuePage() {
   const params = useParams();
   const venueId = params.id as string;

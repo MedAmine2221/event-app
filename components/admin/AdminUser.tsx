@@ -289,7 +289,7 @@ const addNewUser = async () => {
                   value={newUser.displayName}
                   onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2"
-                  style={{ borderColor: `${colors.primary}50`, focusRing: colors.primary }}
+                  style={{ borderColor: `${colors.primary}50` }}
                   placeholder="Jean Dupont"
                 />
               </div>

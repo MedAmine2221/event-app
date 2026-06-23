@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// app/api/admin/packs/route.ts (nouvelle route)
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase-admin";
 

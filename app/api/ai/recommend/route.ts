@@ -122,56 +122,55 @@ export async function POST(req: Request) {
     const model = getGeminiModel();
 
     const prompt = `
-Tu es un conseiller événementiel expert pour "Carthage Events" en Tunisie.
-Un client décrit son besoin pour un événement (mariage, fiançailles, soirée privée...).
-Recommande UNIQUEMENT parmi les options réelles ci-dessous, en choisissant les MEILLEURES options
-adaptées à sa demande (qualité, pertinence du style/genre/spécialité, adéquation budget/capacité).
+      Tu es un conseiller événementiel expert pour "Carthage Events" en Tunisie.
+      Un client décrit son besoin pour un événement (mariage, fiançailles, soirée privée...).
+      Recommande UNIQUEMENT parmi les options réelles ci-dessous, en choisissant les MEILLEURES options
+      adaptées à sa demande (qualité, pertinence du style/genre/spécialité, adéquation budget/capacité).
 
-Besoin du client:
-- Description: ${description}
-- Nombre d'invités: ${guestCount || "non précisé"}
-- Budget: ${budget || "non précisé"}
-- Date: ${date || "non précisée"}
+      Besoin du client:
+      - Description: ${description}
+      - Nombre d'invités: ${guestCount || "non précisé"}
+      - Budget: ${budget || "non précisé"}
+      - Date: ${date || "non précisée"}
 
-Catalogue disponible (JSON):
-Salles: ${JSON.stringify(venues)}
-Bands/Artistes: ${JSON.stringify(bands)}
-Formules Mariage: ${JSON.stringify(packages)}
-Pâtisseries: ${JSON.stringify(pastries)}
-Boissons: ${JSON.stringify(drinks)}
-Douceurs/Fruits secs: ${JSON.stringify(sweets)}
-Formules Tables: ${JSON.stringify(tablePackages)}
-Packs de Réservation: ${JSON.stringify(reservationPacks)}
+      Catalogue disponible (JSON):
+      Salles: ${JSON.stringify(venues)}
+      Bands/Artistes: ${JSON.stringify(bands)}
+      Formules Mariage: ${JSON.stringify(packages)}
+      Pâtisseries: ${JSON.stringify(pastries)}
+      Boissons: ${JSON.stringify(drinks)}
+      Douceurs/Fruits secs: ${JSON.stringify(sweets)}
+      Formules Tables: ${JSON.stringify(tablePackages)}
+      Packs de Réservation: ${JSON.stringify(reservationPacks)}
 
-Signaux de popularité (issus des likes et avis clients) :
-- Chaque band possède "likes" (nombre de likes), "averageRating" (note moyenne sur 5) et "reviewCount" (nombre d'avis).
-- Chaque pâtisserie possède les mêmes signaux "likes", "averageRating", "reviewCount".
-- Genres musicaux les plus populaires actuellement (par likes cumulés puis note moyenne) : ${JSON.stringify(topBandGenres)}
-- Spécialités de pâtisserie les plus populaires actuellement : ${JSON.stringify(topPastrySpecialties)}
+      Signaux de popularité (issus des likes et avis clients) :
+      - Chaque band possède "likes" (nombre de likes), "averageRating" (note moyenne sur 5) et "reviewCount" (nombre d'avis).
+      - Chaque pâtisserie possède les mêmes signaux "likes", "averageRating", "reviewCount".
+      - Genres musicaux les plus populaires actuellement (par likes cumulés puis note moyenne) : ${JSON.stringify(topBandGenres)}
+      - Spécialités de pâtisserie les plus populaires actuellement : ${JSON.stringify(topPastrySpecialties)}
 
-Règles:
-- Sélectionne entre 1 et 3 éléments maximum par catégorie, les plus pertinents et de meilleure qualité.
-- Si une catégorie n'a aucune option pertinente pour ce besoin, renvoie un tableau vide pour cette catégorie.
-- Privilégie les éléments marqués "featured" ou "isPopular" à pertinence égale.
-- Entre deux bands de pertinence équivalente, privilégie celui qui a le plus de "likes" et la meilleure "averageRating", surtout s'il appartient à un genre musical bien classé ci-dessus.
-- Entre deux pâtisseries de pertinence équivalente, privilégie celle qui a le plus de "likes" et la meilleure "averageRating", surtout si sa spécialité est bien classée ci-dessus.
-- Si le client n'exprime aucune préférence de genre musical ou de type de pâtisserie, oriente ton choix vers le genre/la spécialité le mieux classé dans les classements ci-dessus.
-- Sois concret dans l'explication : justifie chaque catégorie de choix selon la demande du client, et mentionne quand un choix est aussi motivé par sa popularité (likes/avis).
+      Règles:
+      - Sélectionne entre 1 et 3 éléments maximum par catégorie, les plus pertinents et de meilleure qualité.
+      - Si une catégorie n'a aucune option pertinente pour ce besoin, renvoie un tableau vide pour cette catégorie.
+      - Privilégie les éléments marqués "featured" ou "isPopular" à pertinence égale.
+      - Entre deux bands de pertinence équivalente, privilégie celui qui a le plus de "likes" et la meilleure "averageRating", surtout s'il appartient à un genre musical bien classé ci-dessus.
+      - Entre deux pâtisseries de pertinence équivalente, privilégie celle qui a le plus de "likes" et la meilleure "averageRating", surtout si sa spécialité est bien classée ci-dessus.
+      - Si le client n'exprime aucune préférence de genre musical ou de type de pâtisserie, oriente ton choix vers le genre/la spécialité le mieux classé dans les classements ci-dessus.
+      - Sois concret dans l'explication : justifie chaque catégorie de choix selon la demande du client, et mentionne quand un choix est aussi motivé par sa popularité (likes/avis).
 
-Réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant/après, avec ce format exact:
-{
-  "recommendedVenueIds": ["id1"],
-  "recommendedBandIds": ["id1"],
-  "recommendedPackageIds": ["id1"],
-  "recommendedPastryIds": ["id1"],
-  "recommendedDrinkIds": ["id1"],
-  "recommendedSweetIds": ["id1"],
-  "recommendedTablePackageIds": ["id1"],
-  "recommendedReservationPackIds": ["id1"],
-  "explanation": "Texte en français (4-6 phrases) expliquant pourquoi ces choix conviennent au client, catégorie par catégorie"
-}
-`;
-
+      Réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant/après, avec ce format exact:
+      {
+        "recommendedVenueIds": ["id1"],
+        "recommendedBandIds": ["id1"],
+        "recommendedPackageIds": ["id1"],
+        "recommendedPastryIds": ["id1"],
+        "recommendedDrinkIds": ["id1"],
+        "recommendedSweetIds": ["id1"],
+        "recommendedTablePackageIds": ["id1"],
+        "recommendedReservationPackIds": ["id1"],
+        "explanation": "Texte en français (4-6 phrases) expliquant pourquoi ces choix conviennent au client, catégorie par catégorie"
+      }
+    `;
     const result = await generateContentWithRetry(model, prompt);
     const text = result.response.text();
     const cleaned = text.replace(/```json|```/g, "").trim();

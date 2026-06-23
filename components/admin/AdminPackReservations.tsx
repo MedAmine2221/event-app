@@ -1,12 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/immutability */
 // components/admin/AdminPackReservations.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Calendar, Clock, User, Mail, Phone, MapPin,
-  CheckCircle, XCircle, Loader2, AlertCircle,
-  Package, Coffee, Palette
+import {
+  Calendar,
+  Clock,
+  Mail,
+  Phone,
+  MapPin,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  AlertCircle,
+  Package,
+  Coffee,
+  Palette,
 } from 'lucide-react';
 
 interface PackReservation {

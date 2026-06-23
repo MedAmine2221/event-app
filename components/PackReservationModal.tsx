@@ -23,10 +23,10 @@ import {
 import { ReservationPack, PackId, PACK_LABELS, SEASONS } from "@/types/pack";
 import { createPackReservation } from "@/lib/pack-service";
 import { getSeason, getSeasonalPrice } from "@/lib/seasonal-price-utils";
+import { Venue } from "@/types";
 
-// Fonction pour vérifier la disponibilité d'une salle localement
 const isVenueAvailable = (
-  venue: VenueLite,
+  venue: Venue,
   date: string,
   period: "morning" | "evening"
 ): boolean => {
@@ -37,15 +37,6 @@ const isVenueAvailable = (
     return u.period === period;
   });
 };
-
-interface VenueLite {
-  id: string;
-  name: string;
-  image: string;
-  capacity: string;
-  price: string;
-  unavailableDates?: UnavailableDate[];
-}
 
 interface UnavailableDate {
   date: string;
@@ -63,7 +54,7 @@ interface PackReservationModalProps {
     textLight: string;
   };
   packs: ReservationPack[];
-  venues: VenueLite[];
+  venues: Venue[];
   initialPackId?: PackId;
   initialDate?: string;
   initialPeriod?: "morning" | "evening" | null; 
@@ -190,7 +181,7 @@ const handleSubmit = async () => {
       await createPackReservation({
         packId: selectedPack.packId,
         packName: selectedPack.name,
-        venueId: selectedVenue.id,
+        venueId: selectedVenue.id ?? "",
         venueName: selectedVenue.name,
         date,
         period,
@@ -319,7 +310,6 @@ const handleSubmit = async () => {
                   </div>
                 </div>
 
-                {/* Affichage des salles disponibles - MAINTENANT DIRECTEMENT VISIBLE */}
                 <div>
                   {date && period ? (
                     <>
@@ -353,7 +343,7 @@ const handleSubmit = async () => {
                             return (
                               <button
                                 key={venue.id}
-                                onClick={() => setSelectedVenueId(venue.id)}
+                                onClick={() => setSelectedVenueId(venue.id ?? "")}
                                 className={`text-left rounded-xl overflow-hidden border-2 transition-all hover:shadow-md ${
                                   isSelected ? "ring-2 ring-offset-1" : ""
                                 }`}

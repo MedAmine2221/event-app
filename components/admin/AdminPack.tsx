@@ -16,8 +16,8 @@ import {
 } from "lucide-react";
 import { ReservationPack, DecorOption, JuiceOption, PackId, PACK_LABELS, SeasonalPrice, Season, SEASONS } from "@/types/pack";
 import { getReservationPacks, saveReservationPack } from "@/lib/pack-service";
+import { PACK_IDS } from "@/constants";
 
-const PACK_IDS: PackId[] = ["pack1", "pack2", "pack3"];
 
 const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
   pack1: {
