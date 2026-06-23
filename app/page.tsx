@@ -21,7 +21,8 @@ import { PackReservationModal } from "@/components/PackReservationModal";
 import { getSeason, getDisplayPrice, getDisplayPriceNumber } from "@/lib/seasonal-price-utils";
 import { VenueBookingModal } from "@/components/VenueBookingModal";
 import { AiRecommendation } from "@/components/AiRecommendation";
-
+import { LikeButton } from "@/components/LIkeButton";
+import { ItemReviewModal } from "@/components/ItemReviewModal";
 type UnavailablePeriod = "morning" | "evening" | "full";
 
 interface UnavailableDate {
@@ -55,6 +56,9 @@ interface Band {
   description: string;
   contact?: string;
   socialMedia?: string[];
+  likes?: number;
+  averageRating?: number;
+  reviewCount?: number;
 }
 
 interface Pastry {
@@ -67,6 +71,9 @@ interface Pastry {
   contact?: string;
   socialMedia?: string[];
   products?: string[];
+  likes?: number;
+  averageRating?: number;
+  reviewCount?: number;
 }
 
 interface Drink {
@@ -149,6 +156,7 @@ const [reservationPacks, setReservationPacks] = useState<ReservationPack[]>([]);
 const [isPackModalOpen, setIsPackModalOpen] = useState(false);
 const [selectedPackForModal, setSelectedPackForModal] = useState<PackId | undefined>(undefined);
 const currentSeason = getSeason(new Date());
+const [reviewModalTarget, setReviewModalTarget] = useState<{ type: "band" | "pastry"; id: string; name: string } | null>(null);
 
 const [filterValue, setFilterValue] = useState<VenueFilterValue>({
     date: "",
@@ -600,7 +608,23 @@ const filteredVenues = useMemo(() => {
         <p className="text-xs mb-2" style={{ color: colors.textLight }}>{band.description}</p>
       )}
       <p className="text-sm font-semibold mb-2" style={{ color: colors.primary }}>{band.price}</p>
-
+<div className="flex items-center justify-between mb-2">
+  <LikeButton targetType="band" targetId={band.id} initialLikes={band.likes || 0} colors={colors} />
+  <button
+    type="button"
+    onClick={() => setReviewModalTarget({ type: "band", id: band.id, name: band.name })}
+    className="text-[11px] underline"
+    style={{ color: colors.primary }}
+  >
+    Donner un avis
+  </button>
+</div>
+{band.reviewCount ? (
+  <p className="text-[11px] mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
+    <Star size={11} style={{ color: colors.primary }} fill={colors.primary} />
+    {band.averageRating?.toFixed(1)} ({band.reviewCount} avis)
+  </p>
+) : null}
       {band.contact && (
         <p className="text-xs mb-2 flex items-center gap-1" style={{ color: colors.textLight }}>
           📞 {band.contact}
@@ -683,7 +707,23 @@ const filteredVenues = useMemo(() => {
           {pastry.description}
         </p>
       )}
-
+<div className="flex items-center justify-between mb-3">
+  <LikeButton targetType="pastry" targetId={pastry.id} initialLikes={pastry.likes || 0} colors={colors} />
+  <button
+    type="button"
+    onClick={() => setReviewModalTarget({ type: "pastry", id: pastry.id, name: pastry.name })}
+    className="text-[11px] underline"
+    style={{ color: colors.primary }}
+  >
+    Donner un avis
+  </button>
+</div>
+{pastry.reviewCount ? (
+  <p className="text-[11px] mb-3 flex items-center gap-1" style={{ color: colors.textLight }}>
+    <Star size={11} style={{ color: colors.primary }} fill={colors.primary} />
+    {pastry.averageRating?.toFixed(1)} ({pastry.reviewCount} avis)
+  </p>
+) : null}
       {pastry.products && pastry.products.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-4">
           {pastry.products.map((product, i) => (
@@ -791,7 +831,14 @@ const filteredVenues = useMemo(() => {
         />
       )}
       <ReviewsSection colors={colors} />
-
+<ItemReviewModal
+  isOpen={!!reviewModalTarget}
+  onClose={() => setReviewModalTarget(null)}
+  targetType={reviewModalTarget?.type || "band"}
+  targetId={reviewModalTarget?.id || ""}
+  targetName={reviewModalTarget?.name || ""}
+  colors={colors}
+/>
       <Footer colors={colors} />
     </div>
   );

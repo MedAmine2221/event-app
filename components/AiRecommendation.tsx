@@ -225,21 +225,18 @@ export const AiRecommendation = ({ colors }: AiRecommendationProps) => {
                         </div>
                       )}
 
-                      {result.bands.length > 0 && (
-                        <div>
-                          <h3 className="text-sm font-medium mb-2 flex items-center gap-1.5" style={{ color: colors.textDark }}>
-                            <Music size={16} style={{ color: colors.primary }} /> Bands recommandés
-                          </h3>
-                          <div className="space-y-2">
-                            {result.bands.map((b) => (
-                              <div key={b.id} className="p-3 rounded-lg border" style={{ borderColor: `${colors.textLight}20` }}>
-                                <p className="font-medium text-sm" style={{ color: colors.textDark }}>{b.name}</p>
-                                <p className="text-xs" style={{ color: colors.textLight }}>{b.genre} · {b.price}</p>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+{result.bands.map((b) => (
+  <div key={b.id} className="p-3 rounded-lg border" style={{ borderColor: `${colors.textLight}20` }}>
+    <p className="font-medium text-sm" style={{ color: colors.textDark }}>{b.name}</p>
+    <p className="text-xs" style={{ color: colors.textLight }}>{b.genre} · {b.price}</p>
+    {(b.likes > 0 || b.reviewCount > 0) && (
+      <p className="text-[11px] mt-1 flex items-center gap-3" style={{ color: colors.primary }}>
+        {b.likes > 0 && <span>❤️ {b.likes}</span>}
+        {b.reviewCount > 0 && <span>⭐ {b.averageRating?.toFixed(1)} ({b.reviewCount} avis)</span>}
+      </p>
+    )}
+  </div>
+))}
 
                       {result.packages.length > 0 && (
                         <div>
@@ -271,6 +268,12 @@ export const AiRecommendation = ({ colors }: AiRecommendationProps) => {
               {p.products.slice(0, 3).join(", ")}
             </p>
           )}
+          {(p.likes > 0 || p.reviewCount > 0) && (
+  <p className="text-[11px] mt-1 flex items-center gap-3" style={{ color: colors.primary }}>
+    {p.likes > 0 && <span>❤️ {p.likes}</span>}
+    {p.reviewCount > 0 && <span>⭐ {p.averageRating?.toFixed(1)} ({p.reviewCount} avis)</span>}
+  </p>
+)}
         </div>
       ))}
     </div>

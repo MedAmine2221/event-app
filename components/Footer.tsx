@@ -60,7 +60,7 @@ export const Footer = ({ colors }: FooterProps) => {
         </div>
 
         {/* Crédits */}
-        <motion.div
+        {/* <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
@@ -126,7 +126,7 @@ export const Footer = ({ colors }: FooterProps) => {
             <p className="text-[11px] text-white/30">
               {"Pour la logique des événements en Tunisie, les retours d'avis sur l'application, son design et la cohérence de sa logique métier."}</p>
           </div>
-        </motion.div>
+        </motion.div> */}
 
         {/* Copyright */}
         <motion.div

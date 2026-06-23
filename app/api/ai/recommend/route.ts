@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import { getGeminiModel, generateContentWithRetry, GeminiQuotaError, GeminiQuotaZeroError } from "@/lib/gemini";
 import { getAdminDb } from "@/lib/firebase-admin";
+import { computeTopGenreByEngagement } from "@/lib/engagement-utils";
 
 export async function POST(req: Request) {
   try {
@@ -57,6 +58,9 @@ export async function POST(req: Request) {
         description: b.description,
         contact: b.contact,
         socialMedia: b.socialMedia,
+        likes: b.likes || 0,
+        averageRating: b.averageRating || 0,
+        reviewCount: b.reviewCount || 0,
       };
     });
 
@@ -84,6 +88,9 @@ export async function POST(req: Request) {
         products: p.products,
         contact: p.contact,
         socialMedia: p.socialMedia,
+        likes: p.likes || 0,
+        averageRating: p.averageRating || 0,
+        reviewCount: p.reviewCount || 0,
       };
     });
 
@@ -106,6 +113,11 @@ export async function POST(req: Request) {
       const r = d.data();
       return { id: d.id, packId: r.packId, name: r.name, description: r.description, price: r.price };
     });
+
+    // Classement des genres musicaux / spécialités de pâtisserie les plus appréciés
+    // (likes cumulés + note moyenne laissée par les clients)
+    const topBandGenres = computeTopGenreByEngagement(bands, "genre").slice(0, 3);
+    const topPastrySpecialties = computeTopGenreByEngagement(pastries, "specialty").slice(0, 3);
 
     const model = getGeminiModel();
 
@@ -131,11 +143,20 @@ Douceurs/Fruits secs: ${JSON.stringify(sweets)}
 Formules Tables: ${JSON.stringify(tablePackages)}
 Packs de Réservation: ${JSON.stringify(reservationPacks)}
 
+Signaux de popularité (issus des likes et avis clients) :
+- Chaque band possède "likes" (nombre de likes), "averageRating" (note moyenne sur 5) et "reviewCount" (nombre d'avis).
+- Chaque pâtisserie possède les mêmes signaux "likes", "averageRating", "reviewCount".
+- Genres musicaux les plus populaires actuellement (par likes cumulés puis note moyenne) : ${JSON.stringify(topBandGenres)}
+- Spécialités de pâtisserie les plus populaires actuellement : ${JSON.stringify(topPastrySpecialties)}
+
 Règles:
 - Sélectionne entre 1 et 3 éléments maximum par catégorie, les plus pertinents et de meilleure qualité.
 - Si une catégorie n'a aucune option pertinente pour ce besoin, renvoie un tableau vide pour cette catégorie.
 - Privilégie les éléments marqués "featured" ou "isPopular" à pertinence égale.
-- Sois concret dans l'explication : justifie chaque catégorie de choix selon la demande du client.
+- Entre deux bands de pertinence équivalente, privilégie celui qui a le plus de "likes" et la meilleure "averageRating", surtout s'il appartient à un genre musical bien classé ci-dessus.
+- Entre deux pâtisseries de pertinence équivalente, privilégie celle qui a le plus de "likes" et la meilleure "averageRating", surtout si sa spécialité est bien classée ci-dessus.
+- Si le client n'exprime aucune préférence de genre musical ou de type de pâtisserie, oriente ton choix vers le genre/la spécialité le mieux classé dans les classements ci-dessus.
+- Sois concret dans l'explication : justifie chaque catégorie de choix selon la demande du client, et mentionne quand un choix est aussi motivé par sa popularité (likes/avis).
 
 Réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant/après, avec ce format exact:
 {
