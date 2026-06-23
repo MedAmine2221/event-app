@@ -18,6 +18,7 @@ interface UserData {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  role: any
 }
 
 interface AuthState {
@@ -161,7 +162,7 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(signIn.fulfilled, (state, action) => {
+      .addCase(signIn.fulfilled, (state: any, action) => {
         state.loading = false;
         state.user = action.payload;
       })
@@ -173,7 +174,7 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(signInWithGoogle.fulfilled, (state, action) => {
+      .addCase(signInWithGoogle.fulfilled, (state: any, action) => {
         state.loading = false;
         state.user = action.payload;
       })
