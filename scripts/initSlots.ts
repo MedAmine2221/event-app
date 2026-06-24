@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // scripts/initAllSlots.js
 const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, addDoc, Timestamp, query, where, getDocs } = require('firebase/firestore');
@@ -19,8 +20,8 @@ async function initAllSlots() {
   try {
     // Récupérer toutes les salles
     const venuesSnapshot = await getDocs(collection(db, "venues"));
-    const venues = [];
-    venuesSnapshot.forEach((doc) => {
+    const venues = [] as any;
+    venuesSnapshot.forEach((doc: any) => {
       venues.push({ id: doc.id, ...doc.data() });
     });
     
