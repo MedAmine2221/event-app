@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // types/pack.ts
 export type PackId = "pack1" | "pack2" | "pack3";
 
@@ -91,7 +92,7 @@ export interface VenueWithSeasonalPrices {
   surface?: string;
   isIndoor: boolean;
   featured: boolean;
-  unavailableDates?: UnavailableDate[];
+  unavailableDates?: any[];
 }
 
 export const SEASONS: { value: Season; label: string; emoji: string }[] = [

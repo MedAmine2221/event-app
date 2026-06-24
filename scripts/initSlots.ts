@@ -4,11 +4,11 @@ const { initializeApp } = require('firebase/app');
 const { getFirestore, collection, addDoc, Timestamp, query, where, getDocs } = require('firebase/firestore');
 
 const firebaseConfig = {
-  apiKey: "AIzaSyA6rMDDBhx3Pc4B05UBGk1CFBmeeU-_TD8",
-  authDomain: "event-app-8186a.firebaseapp.com",
-  projectId: "event-app-8186a",
-  messagingSenderId: "767255399719",
-  appId: "1:767255399719:web:d52140ba35fb12d317ed02"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
@@ -82,7 +82,7 @@ async function initAllSlots() {
             } else {
               skipped++;
             }
-          } catch (error) {
+          } catch (error: any) {
             errors++;
             console.error(`  ❌ Erreur ${date} - ${period}:`, error.message);
           }
