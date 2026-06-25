@@ -91,8 +91,6 @@ export const AdminDashboard = () => {
           getDocs(collection(db, "venues")),
           getDocs(collection(db, "bands")),
           getDocs(collection(db, "pastries")),
-          getDocs(collection(db, "drinks")),
-          getDocs(collection(db, "sweets")),
           getDocs(collection(db, "gallery")),
           getDocs(collection(db, "ratings")),
           getDocs(collection(db, "weddingPackages")),
