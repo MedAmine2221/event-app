@@ -18,7 +18,7 @@ export const PACK_IDS: PackId[] = ["pack1", "pack2", "pack3"];
 export const navLinks = [
   { name: "Acceuil", link: "#home" },
   { name: "À propos", link: "#about" },
-  { name: "Sérvices", link: "#services" },
+  { name: "Services", link: "#services" },
   { name: "Galerie", link: "#gallery" },
 ];
 
