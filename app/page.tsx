@@ -145,7 +145,26 @@ export default function Home() {
       setFilterLoading(false);
     }
   };
+const getDisplayPriceWithPeriod = (
+  venue: any,
+  season: string,
+  period?: "morning" | "evening" | null
+): string => {
+  // 1. Prix par créneau (priorité haute)
+  if (period && venue.periodPrices && venue.periodPrices.length > 0) {
+    const periodPrice = venue.periodPrices.find((p: any) => p.period === period);
+    if (periodPrice?.price) return periodPrice.price;
+  }
 
+  // 2. Prix saisonnier
+  if (venue.seasonalPrices && venue.seasonalPrices.length > 0) {
+    const seasonalPrice = venue.seasonalPrices.find((sp: any) => sp.season === season);
+    if (seasonalPrice?.price) return seasonalPrice.price;
+  }
+
+  // 3. Prix de base
+  return venue.price || "—";
+};
   const handleResetFilter = () => {
     setFilterValue({ 
       date: "", 
@@ -375,14 +394,25 @@ export default function Home() {
                     </span>
                   )}
                 </div>
+
+
                 <div className="p-6">
                   <h3 className="text-2xl font-medium mb-2">{venue.name}</h3>
                   <p className="text-sm mb-1" style={{ color: colors.primary }}>Capacité: {venue.capacity}</p>
                   <p className="text-sm mb-1" style={{ color: colors.textLight }}>Tables: {venue.tables}</p>
                   {venue.surface && <p className="text-sm mb-2" style={{ color: colors.textLight }}>Surface: {venue.surface}</p>}
-                  <p className="text-sm mb-4" style={{ color: colors.primary }}>
-                    Tarif: {getDisplayPrice(venue, currentSeason)} DT
-                  </p>
+                <p className="text-sm mb-4" style={{ color: colors.primary }}>
+  Tarif: {
+    isFiltering && filterValue.period
+      ? getDisplayPriceWithPeriod(venue, currentSeason, filterValue.period)
+      : getDisplayPrice(venue, currentSeason)
+  } DT
+  {isFiltering && filterValue.period && (
+    <span className="ml-2 text-xs" style={{ color: colors.textLight }}>
+      ({filterValue.period === "morning" ? "☀️ Matin" : "🌙 Soirée"})
+    </span>
+  )}
+</p>
                   <motion.button
                     onClick={() => {
                       setSelectedVenueForBooking(venue);

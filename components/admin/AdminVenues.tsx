@@ -45,6 +45,7 @@ const EMPTY_FORM: Omit<Venue, "id"> = {
   isIndoor: true,
   featured: false,
   unavailableDates: [],
+  periodPrices: [],
 };
 
 const TYPE_OPTIONS = [
@@ -277,11 +278,12 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
       tables: formData.tables,
       chairs: formData.chairs,
       type: formData.type,
-      seasonalPrices: formData.seasonalPrices || [], // ✅ AJOUTER ICI
+      seasonalPrices: formData.seasonalPrices || [],
       surface: formData.surface || "",
       isIndoor: formData.isIndoor,
       featured: formData.featured,
       unavailableDates: formData.unavailableDates || [],
+      periodPrices: formData.periodPrices || [],
     };
 
     try {
@@ -311,6 +313,7 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
       console.error("Erreur suppression:", error);
     }
   };
+
   const openEditModal = (venue: Venue) => {
     setEditingVenue(venue);
     setFormData({
@@ -326,6 +329,7 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
       isIndoor: venue.isIndoor !== undefined ? venue.isIndoor : true,
       featured: venue.featured || false,
       unavailableDates: venue.unavailableDates || [],
+      periodPrices: venue.periodPrices || [],
     });
     setImagePreview(venue.image || "");
     setFormError("");
@@ -683,6 +687,52 @@ export const AdminVenues = ({ colors }: { colors: any }) => {
                 onChange={(prices) => setFormData({ ...formData, seasonalPrices: prices })}
                 colors={colors}
               />
+              <div>
+                <label className="block text-sm font-medium mb-2" style={{ color: colors.textDark }}>
+                  🕐 Tarifs par créneau horaire
+                </label>
+                <p className="text-xs mb-3" style={{ color: colors.textLight }}>
+                  Si défini, le prix changera selon le créneau choisi par le client.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: "morning" as const, label: "Matinée (16h–20h)", emoji: "☀️" },
+                    { value: "evening" as const, label: "Soirée (21h–00h)", emoji: "🌙" },
+                  ].map(({ value, label, emoji }) => {
+                    const current = formData.periodPrices?.find(p => p.period === value);
+                    return (
+                      <div key={value} className="flex items-center gap-2">
+                        <span className="text-sm">{emoji}</span>
+                        <div className="flex-1">
+                          <p className="text-xs mb-1" style={{ color: colors.textLight }}>{label}</p>
+                          <input
+                            type="number"
+                            value={current?.price || ""}
+                            onChange={(e) => {
+                              const numVal = parseFloat(e.target.value);
+                              const existing = formData.periodPrices?.find(p => p.period === value);
+                              let newPrices = formData.periodPrices ? [...formData.periodPrices] : [];
+                              if (existing) {
+                                newPrices = newPrices.map(p =>
+                                  p.period === value
+                                    ? { ...p, price: e.target.value, priceNumber: isNaN(numVal) ? 0 : numVal }
+                                    : p
+                                );
+                              } else {
+                                newPrices.push({ period: value, price: e.target.value, priceNumber: isNaN(numVal) ? 0 : numVal });
+                              }
+                              setFormData({ ...formData, periodPrices: newPrices });
+                            }}
+                            placeholder="Prix en TND"
+                            className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none"
+                            style={{ borderColor: `${colors.primary}50` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
               {/* Image */}
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: colors.textDark }}>

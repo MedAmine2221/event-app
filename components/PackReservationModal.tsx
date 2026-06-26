@@ -157,7 +157,26 @@ const resetAndClose = () => {
   setSubmitError("");
   onClose();
 };
+const getDisplayPriceWithPeriod = (
+  venue: any,
+  season: string,
+  period?: "morning" | "evening" | null
+): string => {
+  // 1. Prix par créneau (priorité haute)
+  if (period && venue.periodPrices && venue.periodPrices.length > 0) {
+    const periodPrice = venue.periodPrices.find((p: any) => p.period === period);
+    if (periodPrice?.price) return periodPrice.price;
+  }
 
+  // 2. Prix saisonnier
+  if (venue.seasonalPrices && venue.seasonalPrices.length > 0) {
+    const seasonalPrice = venue.seasonalPrices.find((sp: any) => sp.season === season);
+    if (seasonalPrice?.price) return seasonalPrice.price;
+  }
+
+  // 3. Prix de base
+  return venue.price || "—";
+};
 const handleSubmit = async () => {
     if (!selectedPack || !selectedVenue || !date || !period) return;
     if (!formData.clientName || !formData.clientEmail || !formData.clientPhone) {
@@ -210,9 +229,9 @@ const handleSubmit = async () => {
   const packPrice = selectedPack && selectedSeason 
     ? getSeasonalPrice(selectedPack, selectedSeason) || selectedPack.price
     : selectedPack?.price;
-  const venuePrice = selectedVenue && selectedSeason
-  ? getSeasonalPrice(selectedVenue, selectedSeason) || selectedVenue.price
-  : selectedVenue?.price;
+const venuePrice = selectedVenue
+  ? getDisplayPriceWithPeriod(selectedVenue, selectedSeason || "", period)
+  : null;
   return (
     <AnimatePresence>
       <motion.div
@@ -588,6 +607,17 @@ const handleSubmit = async () => {
                 <span>Pack: <strong>{packPrice}</strong></span>
                 <span>Salle: <strong>{venuePrice ? venuePrice : "--"}</strong></span>
               </div>
+            </div>
+            <div className="flex gap-4 mt-2 text-sm">
+              <span>Pack: <strong>{packPrice}</strong></span>
+              <span>
+                Salle: <strong>{venuePrice || "--"}</strong>
+                {period && (
+                  <span className="ml-1 text-[10px]" style={{ color: colors.textLight }}>
+                    ({period === "morning" ? "☀️ Matin" : "🌙 Soirée"})
+                  </span>
+                )}
+              </span>
             </div>
             {step === "success" && (
               <div className="text-center py-6">

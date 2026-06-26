@@ -23,6 +23,7 @@ export interface Venue {
   featured: boolean;
   unavailableDates: UnavailableDate[];
   seasonalPrices: VenueSeasonalPrice[];
+  periodPrices?: PeriodPrice[];
 }
 
 export interface Band {
@@ -54,6 +55,11 @@ export interface VenueDashboard extends BaseDoc {
   isIndoor: boolean;
 }
 
+export interface PeriodPrice {
+  period: "morning" | "evening";
+  price: string;
+  priceNumber: number;
+}
 
 export interface BandDashboard extends BaseDoc {
   name: string;
