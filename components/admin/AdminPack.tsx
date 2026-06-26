@@ -22,38 +22,38 @@ import { getReservationPacks, saveReservationPack } from "@/lib/pack-service";
 import { PACK_IDS } from "@/constants";
 
 
-const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
-  pack1: {
-    name: "Standard",
-    description: "Choisissez votre salle et personnalisez la décoration : couleur, nappes et housses de chaises.",
-    price: "À partir de 2000 TND",
-    seasonalPrices: [],
-    image: "",
-    decorOptions: [],
-  },
-  pack2: {
-    name: "Prestige",
-    description: "Choisissez votre salle, profitez de l'eau, du thé et d'un service inclus.",
-    price: "À partir de 1500 TND",
-    seasonalPrices: [],
-    image: "",
-    includesWater: true,
-    includesTea: true,
-    serviceDescription: "Service de table inclus",
-  },
-  pack3: {
-    name: "Premium",
-    description: "Choisissez votre salle, profitez d'un serveur dédié, d'un jus au choix, de l'eau et du thé.",
-    price: "À partir de 2500 TND",
-    seasonalPrices: [],
-    image: "",
-    includesWater: true,
-    includesTea: true,
-    includesWaiter: true,
-    serviceDescription: "Serveur dédié pendant tout l'événement",
-    juiceOptions: [],
-  },
-};
+    const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
+      pack1: {
+        name: "Standard",
+        description: "Choisissez votre salle et personnalisez la décoration : couleur, nappes et housses de chaises.",
+        price: "À partir de 2000 TND",
+        seasonalPrices: [],
+        image: "",
+        decorOptions: [],
+      },
+      pack2: {
+        name: "Prestige",
+        description: "Choisissez votre salle, profitez de l'eau, du thé et d'un service inclus.",
+        price: "À partir de 1500 TND",
+        seasonalPrices: [],
+        image: "",
+        includesWater: true,
+        includesTea: true,
+        serviceDescription: "Service de table inclus",
+      },
+      pack3: {
+        name: "Premium",
+        description: "Choisissez votre salle, profitez d'un serveur dédié, d'un jus au choix, de l'eau et du thé.",
+        price: "À partir de 2500 TND",
+        seasonalPrices: [],
+        image: "",
+        includesWater: true,
+        includesTea: true,
+        includesWaiter: true,
+        serviceDescription: "Serveur dédié pendant tout l'événement",
+        juiceOptions: [],
+      },
+    };
     const getCurrentSeasonalPrice = (pack: Omit<ReservationPack, "id" | "packId">) => {
       const currentSeason = getSeason(new Date());
       const seasonalPrice = pack.seasonalPrices?.find(sp => sp.season === currentSeason);

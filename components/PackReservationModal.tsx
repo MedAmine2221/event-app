@@ -5,6 +5,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { useAppSelector } from "@/store/hooks";
+import { MdRestaurant } from "react-icons/md";
 
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -480,7 +481,7 @@ const venuePrice = selectedVenue
                       {selectedPack.includesWater && <li className="flex items-center gap-2"><Droplets size={14} style={{ color: colors.primary }} /> Eau</li>}
                       {selectedPack.includesTea && <li className="flex items-center gap-2"><Coffee size={14} style={{ color: colors.primary }} /> Thé</li>}
                       {selectedPack.packId === "pack3" && selectedPack.includesWaiter && (
-                        <li className="flex items-center gap-2"><Sparkles size={14} style={{ color: colors.primary }} /> Serveur dédié</li>
+                        <li className="flex items-center gap-2"><MdRestaurant size={14} style={{ color: colors.primary }} /> Service de table inclus</li>
                       )}
                       {selectedPack.serviceDescription && <li>{selectedPack.serviceDescription}</li>}
                     </ul>
