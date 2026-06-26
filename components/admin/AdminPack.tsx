@@ -29,7 +29,7 @@ const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
     decorOptions: [],
   },
   pack2: {
-    name: "Prestig",
+    name: "Prestige",
     description: "Choisissez votre salle, profitez de l'eau, du thé et d'un service inclus.",
     price: "À partir de 1500 TND",
     seasonalPrices: [],
