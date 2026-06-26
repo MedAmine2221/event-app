@@ -604,10 +604,7 @@ const venuePrice = selectedVenue
                   {SEASONS.find(s => s.value === selectedSeason)?.emoji} Tarif {SEASONS.find(s => s.value === selectedSeason)?.label}
                 </p>
               )}
-              <div className="flex gap-4 mt-2 text-sm">
-                <span>Pack: <strong>{packPrice}</strong></span>
-                <span>Salle: <strong>{venuePrice ? venuePrice : "--"}</strong></span>
-              </div>
+
             </div>
             <div className="flex gap-4 mt-2 text-sm">
               <span>Pack: <strong>{packPrice}</strong></span>
