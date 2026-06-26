@@ -16,7 +16,7 @@ export const colors = {
 export const PACK_IDS: PackId[] = ["pack1", "pack2", "pack3"];
 
 export const navLinks = [
-  { name: "Acceuil", link: "#home" },
+  { name: "Accueil", link: "#home" },
   { name: "À propos", link: "#about" },
   { name: "Services", link: "#services" },
   { name: "Galerie", link: "#gallery" },
