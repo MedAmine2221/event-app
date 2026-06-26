@@ -61,13 +61,10 @@ export interface ReservationPack {
   price: string; // Prix par défaut
   seasonalPrices: SeasonalPrice[]; // Tarifs saisonniers
   image?: string;
-  // Pack 1 : personnalisation décor
   decorOptions?: DecorOption[];
-  // Pack 2 & 3 : eau / thé / service
   includesWater?: boolean;
   includesTea?: boolean;
   serviceDescription?: string;
-  // Pack 3 : serveur + choix de jus
   includesWaiter?: boolean;
   juiceOptions?: JuiceOption[];
 }

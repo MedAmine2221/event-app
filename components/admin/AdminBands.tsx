@@ -213,7 +213,6 @@ const removeSocialMedia = (index: number) => {
                 <h3 className="font-semibold text-lg mb-1">{band.name}</h3>
                 <p className="text-xs mb-2" style={{ color: colors.textLight }}>{band.genre}</p>
                 <p className="text-sm mb-3" style={{ color: colors.textLight }}>{band.description}</p>
-                <p className="text-sm font-semibold mb-3" style={{ color: colors.primary }}>{band.price} TND</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => openEditModal(band)}

@@ -4,6 +4,9 @@
 "use client";;
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+// Ajoute cet import en haut
+import { getSeason, getSeasonEmoji } from "@/types/pack"; // ← ajoute getSeason, getSeasonEmoji
+
 import {
   Plus,
   X,
@@ -51,6 +54,14 @@ const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
     juiceOptions: [],
   },
 };
+    const getCurrentSeasonalPrice = (pack: Omit<ReservationPack, "id" | "packId">) => {
+      const currentSeason = getSeason(new Date());
+      const seasonalPrice = pack.seasonalPrices?.find(sp => sp.season === currentSeason);
+      if (seasonalPrice?.price) {
+        return `${seasonalPrice.price} TND ${getSeasonEmoji(currentSeason)}`;
+      }
+      return pack.price;
+    };
   const SeasonalPricesEditor = ({ 
     seasonalPrices, 
     onChange, 
@@ -80,7 +91,8 @@ const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
       
       onChange(newPrices);
     };
-    
+
+
     return (
       <div>
         <label className="block text-sm font-medium mb-2" style={{ color: colors.textDark }}>
@@ -92,6 +104,8 @@ const DEFAULT_PACK: Record<PackId, Omit<ReservationPack, "id" | "packId">> = {
         <div className="grid grid-cols-2 gap-3">
           {SEASONS.map(({ value, label, emoji }) => {
             const current = seasonalPrices.find(sp => sp.season === value);
+            console.log("current ", current);
+            
             return (
               <div key={value} className="flex items-center gap-2">
                 <span className="text-sm">{emoji}</span>
@@ -300,8 +314,9 @@ export const AdminPacks = ({ colors }: { colors: any }) => {
               <div className="p-5">
                 <h3 className="font-semibold text-lg mb-1">{pack.name}</h3>
                 <p className="text-sm mb-3" style={{ color: colors.textLight }}>{pack.description}</p>
-                <p className="text-sm font-semibold mb-4" style={{ color: colors.primary }}>{pack.price}</p>
-
+                <p className="text-sm font-semibold mb-4" style={{ color: colors.primary }}>
+                  {getCurrentSeasonalPrice(pack)}
+                </p>                
                 <div className="flex flex-wrap gap-1.5 mb-4">
                   <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${colors.primary}15`, color: colors.primary }}>
                     🏛️ Choix de salle
