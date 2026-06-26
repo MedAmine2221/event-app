@@ -110,12 +110,12 @@ export const AdminSidebar = () => {
               </span>
             </div>
           )}
-          <button
+          {/* <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-lg hover:bg-white/10 transition-colors"
           >
             {sidebarOpen ? <X size={20} className="text-white" /> : <Menu size={20} className="text-white" />}
-          </button>
+          </button> */}
         </div>
       </div>
 
